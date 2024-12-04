@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaHandPointRight } from "react-icons/fa";
+import { FaHandPointDown } from "react-icons/fa";
 
 
 const ContinueMessage = () => {
@@ -11,8 +11,8 @@ const ContinueMessage = () => {
         <br />
         <span className='italic font-bold'>Label Column, Fairness Metric, and Sensitive Column</span>
         <br />
-        in the next table.
-        <FaHandPointRight className='inline ml-2 ' />
+        in the below boxes.
+        <FaHandPointDown className='inline ml-2 ' />
       </p>
     </div>
   )

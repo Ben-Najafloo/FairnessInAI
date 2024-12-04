@@ -3,18 +3,19 @@ import { ProgressContext } from '../ProgressContext';
 import axios from 'axios';
 import ContinueMessage from './ContinueMessage';
 import { TbDeviceAnalytics } from "react-icons/tb";
+import { useNavigate } from "react-router-dom";
 
 
 const Upload = () => {
     const { setProgress } = useContext(ProgressContext);
-
+    const navigate = useNavigate();
     const [datasetFile, setDatasetFile] = useState(null);
     const [labelColumn, setLabelColumn] = useState('');
     const [sensitiveColumn, setSensitiveColumn] = useState('');
     const [metricType, setMetricType] = useState('demographic_parity');
     const [fileName, setFileName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [contineMessage, setContineMessage] = useState('');
+    const [contineMessage, setContinueMessage] = useState('');
 
 
     // Handle file input change
@@ -29,7 +30,8 @@ const Upload = () => {
                 setErrorMessage(`${fileExtension} is an Invalid file format. Please upload a file in one of the following formats: ${allowedFormats.join(", ")}`);
                 setDatasetFile(null); // Reset the dataset file state
                 setFileName(""); // Clear the file name display
-                setContineMessage("");
+
+                setContinueMessage("");
                 return;
             }
 
@@ -37,10 +39,9 @@ const Upload = () => {
             setErrorMessage(''); // Clear any previous error messages
             setDatasetFile(selectedFile);
             setFileName(selectedFile.name);
-            setContineMessage(<ContinueMessage />);
+            setContinueMessage(<ContinueMessage />);
         }
     };
-
 
     // Handle delete action
     const handleDelete = () => {
@@ -57,6 +58,11 @@ const Upload = () => {
             setErrorMessage("Please upload a dataset file.");
             return;
         }
+        // Ensure label and sensitive columns are selected
+        if (!labelColumn || !sensitiveColumn) {
+            setErrorMessage("Please select both label and sensitive columns.");
+            return;
+        }
 
         // Prepare form data
         const formData = new FormData();
@@ -70,21 +76,25 @@ const Upload = () => {
             const response = await axios.post("http://localhost:5000/upload", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
+            console.log(response.data);
             setErrorMessage(''); // Clear any previous error messages
-            alert("Fairness Score: " + response.data.fairness_score);
-            setProgress(3);
+
+            navigate("/dataset-info", { state: { datasetInfo: response.data } });
+            setProgress(3); // Move to the next step in your flow
         } catch (error) {
             console.error("There was an error uploading the file!", error);
             setErrorMessage("Error in uploading dataset or processing request.");
         }
     };
 
-    return (
-        <form onSubmit={handleSubmit} enctype="multipart/form-data" className="flex flex-wrap justify-between p-4 w-4/5">
 
-            <div className='w-full md:w-2/3 p-2'>
-                <label className="flex flex-col items-center justify-center h-72 border-2 border-gray-200 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+    return (
+
+        <form onSubmit={handleSubmit} enctype="multipart/form-data" className="mx-auto md:mt-20 items-center justify-between p-4 w-2/3">
+
+            <div className='w-full p-2'>
+                <label className="flex flex-col items-center justify-center h-96 border-2 border-gray-200 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500">
+                    <div className="relative items-center justify-center pt-5 pb-6">
                         {/* Conditionally render elements based on datasetFile state */}
                         {!datasetFile && (
                             <>
@@ -117,15 +127,15 @@ const Upload = () => {
 
                         {/* Show delete button if a file is loaded */}
                         {datasetFile && (
-                            <>
-                                <p></p>
+                            <div className='float-right mt-20'>
+
                                 <button
                                     onClick={handleDelete}
-                                    className="mt-16 px-4 py-1 border-2 border-red-500 text-red-500 rounded"
+                                    className="px-4 py-1 border-2 border-red-500 text-red-500 rounded"
                                 >
                                     Change or Delete
                                 </button>
-                            </>
+                            </div>
                         )}
                     </div>
                     <input
@@ -137,14 +147,14 @@ const Upload = () => {
                 </label>
             </div>
 
-            <div className="w-full md:w-1/3 p-2">
-                <div className="w-full px-3 mb-5">
+            <div className="w-2/3 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 pt-2">
+                <div className="w-full px-3 sm:col-span-2">
                     <label className="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-1" for="grid-city">
                         Label Column:
                     </label>
                     <input className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-2 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="" type="text" value={labelColumn} onChange={(e) => setLabelColumn(e.target.value)} />
                 </div>
-                <div className="w-full px-3 mb-5">
+                <div className="w-full px-3 sm:col-span-2">
                     <label className="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-1" for="grid-state">
                         Fairness Metric:
                     </label>
@@ -161,13 +171,13 @@ const Upload = () => {
                         </div>
                     </div>
                 </div>
-                <div className="w-full px-3 mb-2">
+                <div className="w-full px-3 sm:col-span-2">
                     <label className="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-1" for="grid-zip">
                         Sensitive Column:
                     </label>
                     <input className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-2 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="" type="text" value={sensitiveColumn} onChange={(e) => setSensitiveColumn(e.target.value)} />
                 </div>
-                <div className="w-full px-3 mt-9">
+                <div className="w-full px-3 mt-4">
                     <button type="submit" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-9 rounded inline-flex items-center">
                         <span>Analyze</span>
                         <TbDeviceAnalytics className="ml-3" />
@@ -175,6 +185,8 @@ const Upload = () => {
                 </div>
             </div>
         </form>
+
+
     );
 };
 

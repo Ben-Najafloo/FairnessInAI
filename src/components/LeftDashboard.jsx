@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom';
 
 const LeftDashboard = () => {
     return (
-        <div className='bg-gray-900 text-white p-7 h-screen w-1/5'>
-            <div className=''>
+        <div className='h-screen w-80 p-7 bg-slate-800'>
+            <div className='text-white'>
                 <Link to="/">
                     <div className='flex text-2xl mb-7'>
                         <FaBalanceScaleLeft className='w-28 h-16' />

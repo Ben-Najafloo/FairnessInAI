@@ -11,7 +11,7 @@ const Home = () => {
     };
 
     return (
-        <div className="w-4/5">
+        <div>
             <div className="w-full flex flex-col p-7 items-center justify-center m-auto">
                 <h1 className="text-6xl mt-52 text-white font-bold">Fairness in AI</h1>
                 <p className="text-xl m-5 text-white">

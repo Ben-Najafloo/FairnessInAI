@@ -4,6 +4,9 @@ import Layout from './components/Layout';
 import Home from './components/Home';
 import Upload from './components/Upload';
 import Result from './components/Result';
+import DatasetInfo from './components/DatasetInfo';
+import Training from './components/Training';
+import Analys from './components/Analys';
 
 function App() {
   return (
@@ -14,6 +17,9 @@ function App() {
             <Route index element={<Home />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/result" element={<Result />} />
+            <Route path='/dataset-info' element={<DatasetInfo />} />
+            <Route path='/training' element={<Training />} />
+            <Route path='/analys' element={<Analys />} />
           </Route>
         </Routes>
       </Router>
