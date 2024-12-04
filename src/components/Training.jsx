@@ -65,7 +65,7 @@ const Training = () => {
             // Axios automatically parses JSON responses
             const result = response.data;
             console.log('Training Result:', result);
-
+            setProgress(5);
             // Navigate to the results page and pass the result as state
             navigate('/analys', { state: { result } });
         } catch (error) {

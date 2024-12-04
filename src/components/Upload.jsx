@@ -69,7 +69,7 @@ const Upload = () => {
         formData.append("file", datasetFile);
         formData.append("label_column", labelColumn);
         formData.append("sensitive_column", sensitiveColumn);
-        formData.append("metric_type", metricType);
+
 
         try {
             // Send POST request to the backend
@@ -154,23 +154,7 @@ const Upload = () => {
                     </label>
                     <input className="appearance-none block w-full bg-gray-50 text-gray-700 border border-gray-200 rounded py-2 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="" type="text" value={labelColumn} onChange={(e) => setLabelColumn(e.target.value)} />
                 </div>
-                <div className="w-full px-3 sm:col-span-2">
-                    <label className="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-1" for="grid-state">
-                        Fairness Metric:
-                    </label>
-                    <div className="relative">
-                        <select className="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                            id=""
-                            value={metricType}
-                            onChange={(e) => setMetricType(e.target.value)}>
-                            <option>Demographic Parity</option>
-                            <option>Equalized Odds</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                        </div>
-                    </div>
-                </div>
+
                 <div className="w-full px-3 sm:col-span-2">
                     <label className="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-1" for="grid-zip">
                         Sensitive Column:
