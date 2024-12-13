@@ -96,7 +96,7 @@ const Training = () => {
                                                     checked={selectedAlgorithms.includes(algorithm)}
                                                     onChange={handleAlgorithmChange}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                                                <label for={`${algorithm}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{algorithm}</label>
+                                                <label for={`${algorithm}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-700">{algorithm}</label>
                                             </div>
                                         </li>
                                     ))}
@@ -117,7 +117,7 @@ const Training = () => {
                                                     checked={selectedFairnessMetrics.includes(metric)}
                                                     onChange={handleFairnessMetricChange}
                                                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                                                <label htmlFor={`${metric}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{metric}</label>
+                                                <label htmlFor={`${metric}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-700">{metric}</label>
                                             </div>
                                         </li>
                                     ))}
@@ -138,7 +138,7 @@ const Training = () => {
                                                     checked={selectedPerformanceMetrics.includes(evaluationMetric)}
                                                     onChange={handlePerformanceMetricChange}
                                                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                                                <label htmlFor={`${evaluationMetric}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{evaluationMetric} </label>
+                                                <label htmlFor={`${evaluationMetric}-checkbox`} className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-700">{evaluationMetric} </label>
                                             </div>
                                         </li>
                                     ))}
@@ -164,8 +164,8 @@ const Training = () => {
                                         />
                                     </div>
                                     <div className="ml-7">
-                                        <span className="ml-5 text-white">Test: {splitRatio} %</span>
-                                        <span className="ml-5 text-white">Train: {100 - splitRatio} %</span>
+                                        <span className="ml-5 text-white">Testing: {splitRatio} %</span>
+                                        <span className="ml-5 text-white">Training: {100 - splitRatio} %</span>
                                     </div>
 
                                 </div>

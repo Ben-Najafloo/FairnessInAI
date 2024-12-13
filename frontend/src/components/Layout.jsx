@@ -14,11 +14,11 @@ const Layout = () => {
         //     </div>
         // </div>
 
-        <div class="flex">
-            <div class="flex-none w-80 h-screen bg-slate-300">
+        <div className="flex">
+            <div className="flex-none w-80 h-screen bg-slate-300">
                 <LeftDashboard />
             </div>
-            <div class="grow h-screen bg-slate-600">
+            <div className="grow h-screen bg-slate-600">
                 <Outlet />
             </div>
         </div>

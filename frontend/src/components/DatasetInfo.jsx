@@ -4,8 +4,6 @@ import { ProgressContext } from '../ProgressContext';
 import { BsCaretDownFill } from "react-icons/bs";
 import { motion } from 'framer-motion';
 
-
-
 const DatasetInfo = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -28,10 +26,9 @@ const DatasetInfo = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
 
-    const { label_column, sensitive_column, data_shape, dataset_summary } = datasetInfo;
+    const { label_column, sensitive_column, sensitive_column2, data_shape, dataset_summary } = datasetInfo;
 
     const handleStartTraining = () => {
-        alert("Starting training...");
         setProgress(4);
         navigate("/training", { state: { datasetInfo: datasetInfo } });
     };
@@ -65,23 +62,38 @@ const DatasetInfo = () => {
                             <span className="text-gray-100">{sensitive_column}</span>
                         </div>
 
+                        <div className="flex mb-2">
+                            <h4 className="text-md mr-2 text-blue-300">Second Sensitive Column:</h4>
+                            {sensitive_column2 ? (
+                                <span className="text-gray-100">{sensitive_column2}</span>
+                            ) : (
+                                <span className="text-gray-100">Not selected</span>
+                            )}
+                        </div>
+
 
                         {/* Missing Data */}
-                        <h4 className="text-md text-blue-300 mt-6">Missing Data:</h4>
-                        {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.missing_data)
-                                    .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0%
-                                    .map(([col, missing]) => (
-                                        <li key={col}>
-                                            {col}: {(missing * 100).toFixed(2)}% missing
-                                        </li>
-                                    ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-100">No missing data detected.</p>
-                        )}
-
+                        <div className="flex mt-2">
+                            <h4 className="text-md text-blue-300 ">Missing Data:</h4>
+                            {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
+                                // Check if any column has missing values greater than 0
+                                Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
+                                    <ul className="text-gray-100">
+                                        {Object.entries(dataset_summary.missing_data)
+                                            .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0
+                                            .map(([col, missing]) => (
+                                                <li key={col}>
+                                                    {col}: {(missing * 100).toFixed(2)}% missing
+                                                </li>
+                                            ))}
+                                    </ul>
+                                ) : (
+                                    <span className="text-gray-100">No missing data detected.</span>
+                                )
+                            ) : (
+                                <span className="text-gray-100">No missing data detected.</span>
+                            )}
+                        </div>
 
                         {/* Data Types */}
                         <div className="flex text-md text-blue-300 mt-6">
@@ -102,7 +114,6 @@ const DatasetInfo = () => {
                             </button>
                         </div>
                         {dataset_summary.data_types && (
-
                             <div className="flex items-center justify-center">
                                 <div className="container mx-auto p-4">
                                     {dataTypeIsExpanded && (
