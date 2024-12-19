@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import Slider from '@mui/material/Slider';
 import axios from 'axios';
@@ -79,8 +79,8 @@ const Training = () => {
     return (
         <div>
             <section>
-                <div className="md:p-5 md:pl-5">
-                    <div className="bg-gray-800 p-9 rounded-lg mb-8 md:max-h-[850px] overflow-auto">
+                <div className="md:p-5 md:pl-5 h-screen">
+                    <div className="bg-gray-800 py-4 px-9 rounded-lg md:max-h-[750px] overflow-auto">
 
                         <form className="w-full pl-4">
                             <div className="flex-wrap -mx-3 mb-4">
@@ -172,9 +172,9 @@ const Training = () => {
                             </div>
 
                             <div className="flex items-center space-x-4">
-                                <a href="/upload" className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                                    back
-                                </a>
+                                <Link to="/upload" className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                                    Load Another Dataset
+                                </Link>
                                 <button onClick={handleSubmit} className="text-white bg-blue-500 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
                                     Start Training
                                 </button>
