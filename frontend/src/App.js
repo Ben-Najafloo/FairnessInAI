@@ -7,6 +7,7 @@ import Result from './components/Result';
 import DatasetInfo from './components/DatasetInfo';
 import Training from './components/Training';
 import Analys from './components/Analys';
+import Test from './components/Test'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path='/dataset-info' element={<DatasetInfo />} />
             <Route path='/training' element={<Training />} />
             <Route path='/analys' element={<Analys />} />
+            <Route path='/test' element={<Test />} />
           </Route>
         </Routes>
       </Router>
