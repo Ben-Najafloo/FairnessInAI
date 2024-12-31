@@ -17,7 +17,7 @@ const Upload = () => {
     const [labelColumn, setLabelColumn] = useState('');
     const [sensitiveColumn, setSensitiveColumn] = useState('');
     const [sensitiveColumn2, setSensitiveColumn2] = useState('');
-    const [metricType, setMetricType] = useState('demographic_parity');
+    // const [metricType, setMetricType] = useState('demographic_parity');
     const [fileName, setFileName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [columns, setColumns] = useState([]);
@@ -75,6 +75,7 @@ const Upload = () => {
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(labelColumn, sensitiveColumn)
 
         // Ensure a file is selected
         if (!datasetFile) {
@@ -149,7 +150,7 @@ const Upload = () => {
                         {columns.length > 0 && (
                             <div className="items-center justify-center">
 
-                                <div className=" mx-auto">
+                                {/* <div className=" mx-auto">
                                     <strong>Columns:</strong>
                                     <div
                                         variants={{ transition: { staggleChildren: 0.5 } }}
@@ -160,7 +161,7 @@ const Upload = () => {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </div> */}
 
                                 <div className='mt-5'>
                                     <p>
@@ -201,29 +202,38 @@ const Upload = () => {
                 </label>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 pr-7">
-                <div className="px-3">
-                    <label className="block uppercase tracking-wide text-gray-100 text-xs mb-1" for="grid-city">
-                        Label Column:*
-                    </label>
-                    <input className="appearance-none text-white bg-slate-800 block w-full focus:text-gray-700 border border-white rounded py-2 px-4 leading-tight focus:outline-none focus:bg-slate-300 focus:border-gray-500" id="" type="text" value={labelColumn} onChange={(e) => setLabelColumn(e.target.value)} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 pl-3 pr-9 text-white">
+                <div>
+                    <label className='text-sm'>Label Column *</label>
+                    <select value={labelColumn} onChange={(e) => setLabelColumn(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-back-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-800 dark:focus:border-gray-800">
+                        <option></option>
+                        {columns.map((col, index) => (
+                            <option key={col} value={col}>{col}</option>
+                        ))}
+
+                    </select>
+                </div>
+                <div>
+                    <label className='text-sm'>Sensitive Column *</label>
+                    <select value={sensitiveColumn} onChange={(e) => setSensitiveColumn(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-back-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-800 dark:focus:border-gray-800">
+                        <option></option>
+                        {columns.map((col, index) => (
+                            <option key={col} value={col}>{col}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className='text-sm'>Sensitive Column </label>
+                    <select value={sensitiveColumn2} onChange={(e) => setSensitiveColumn2(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-back-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-800 dark:focus:border-gray-800">
+                        <option></option>
+                        {columns.map((col, index) => (
+                            <option key={col} value={col}>{col}</option>
+                        ))}
+                    </select>
                 </div>
 
-                <div className="px-3">
-                    <label className="block uppercase tracking-wide text-gray-100 text-xs mb-1" for="grid-zip">
-                        Sensitive Column:*
-                    </label>
-                    <input className="appearance-none text-white bg-slate-800 block w-full focus:text-gray-700 border border-white rounded py-2 px-4 leading-tight focus:outline-none focus:bg-slate-300 focus:border-gray-500" id="" type="text" value={sensitiveColumn} onChange={(e) => setSensitiveColumn(e.target.value)} />
-                </div>
 
-                <div className="px-3">
-                    <label className="block uppercase tracking-wide text-gray-100 text-xs mb-1" for="grid-zip">
-                        Sensitive Column:
-                    </label>
-                    <input className="appearance-none text-white bg-slate-800 block w-full focus:text-gray-700 border border-white rounded py-2 px-4 leading-tight focus:outline-none focus:bg-slate-300 focus:border-gray-500" id="" type="text" value={sensitiveColumn2} onChange={(e) => setSensitiveColumn2(e.target.value)} />
-                </div>
-
-                <div className="px-3 mt-4 ml-11">
+                <div className="px-3 mt-5 ml-11">
                     <button type="submit"
                         className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
                         <span>Analyze</span>
