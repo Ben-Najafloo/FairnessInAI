@@ -10,14 +10,6 @@ const Home = () => {
         setProgress(2); // Update to Step 2
     };
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setProgress(1);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-    }, [setProgress]);
-
     return (
         <div>
             <div className="w-full flex flex-col p-7 items-center justify-center m-auto">

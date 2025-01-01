@@ -16,7 +16,7 @@ const Upload = () => {
     const [datasetFile, setDatasetFile] = useState(null);
     const [labelColumn, setLabelColumn] = useState('');
     const [sensitiveColumn, setSensitiveColumn] = useState('');
-    const [sensitiveColumn2, setSensitiveColumn2] = useState('');
+
     // const [metricType, setMetricType] = useState('demographic_parity');
     const [fileName, setFileName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -93,7 +93,6 @@ const Upload = () => {
         formData.append("file", datasetFile);
         formData.append("label_column", labelColumn);
         formData.append("sensitive_column", sensitiveColumn);
-        formData.append("sensitive_column2", sensitiveColumn2);
 
 
         try {
@@ -117,11 +116,11 @@ const Upload = () => {
 
         <form onSubmit={handleSubmit}
             enctype="multipart/form-data"
-            className="mx-auto md:pt-20 items-center justify-between px-4 w-2/3 h-screen">
+            className="mx-auto md:pt-4 items-center justify-between px-4 h-full">
 
-            <div className='w-full p-2 h-3/4'>
+            <div className='w-full p-2 h-4/5'>
                 <label className="flex relative h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
-                    <div className="relative items-center  justify-center h-2/3">
+                    <div className="relative items-center  justify-center h-3/4">
                         {/* Conditionally render elements based on datasetFile state */}
                         {!datasetFile && (
                             <div className='text-xl pt-8 text-center text-gray-500 dark:text-gray-400 relative items-center justify-center'>
@@ -175,10 +174,6 @@ const Upload = () => {
                             </div>
                         )}
 
-
-
-
-
                     </div>
                     <input
                         id="dropzone-file"
@@ -214,7 +209,7 @@ const Upload = () => {
                     </select>
                 </div>
                 <div>
-                    <label className='text-sm'>Sensitive Column *</label>
+                    <label className='text-sm'>Sensitive Feature *</label>
                     <select value={sensitiveColumn} onChange={(e) => setSensitiveColumn(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-back-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-800 dark:focus:border-gray-800">
                         <option></option>
                         {columns.map((col, index) => (
@@ -222,21 +217,11 @@ const Upload = () => {
                         ))}
                     </select>
                 </div>
-                <div>
-                    <label className='text-sm'>Sensitive Column </label>
-                    <select value={sensitiveColumn2} onChange={(e) => setSensitiveColumn2(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-800 focus:border-back-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-800 dark:focus:border-gray-800">
-                        <option></option>
-                        {columns.map((col, index) => (
-                            <option key={col} value={col}>{col}</option>
-                        ))}
-                    </select>
-                </div>
 
-
-                <div className="px-3 mt-5 ml-11">
+                <div className="px-3 mt-6 ml-11">
                     <button type="submit"
                         className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                        <span>Analyze</span>
+                        <span className='text-base'>Analyze</span>
                         <TbDeviceAnalytics className="ml-3 text-2xl" />
                     </button>
                 </div>

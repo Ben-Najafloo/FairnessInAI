@@ -41,10 +41,11 @@ const DatasetInfo = () => {
     return (
         <div>
             <section>
-                <div className="relative md:p-5 md:pl-5">
+                <div className="relative  md:pl-5 w-full">
+
                     {showConfirmationModal && (
                         <div id="deleteModal" className="mt-20 ml-96 absolute top-0 right-0 justify-center items-center w-full md:inset-0 h-modal md:h-full">
-                            <div className="relative p-4 w-full max-w-md h-full md:h-auto">
+                            <div className="relative p-4 w-full max-w-md md:h-auto">
 
                                 <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-700 sm:p-5">
                                     <button type="button" onClick={handleConfirmation} className="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
@@ -76,8 +77,10 @@ const DatasetInfo = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>)}
-                    <div className=" bg-gray-800 p-9 rounded-lg mb-8 max-h-[570px] overflow-auto">
+                        </div>
+                    )}
+
+                    <div className=" bg-gray-800 p-9 rounded-lg mb-5 w-full max-h-[490px] overflow-auto">
 
                         {/* Display Dataset Details */}
 
@@ -262,7 +265,6 @@ const DatasetInfo = () => {
 
 
                     </div>
-
 
                     <div className="flex items-center space-x-4">
                         <a href="/upload" className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
