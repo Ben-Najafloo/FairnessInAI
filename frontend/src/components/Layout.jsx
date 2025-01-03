@@ -17,10 +17,10 @@ const Layout = () => {
         // </div>
 
         <div className="bg-gradient-to-b from-gray-500 to-gray-900 h-screen">
-            <Nav />
-            <main className="flex">
+            <Nav className="h-1/5" />
+            <main className="flex h-4/5">
                 <LeftDashboard />
-                <div className="mx-auto grow px-4 py-6 sm:px-6 lg:px-8">
+                <div className="w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
                     <Outlet />
                 </div>
             </main>

@@ -12,7 +12,7 @@ const LeftDashboard = () => {
     }
 
     return (
-        <div className=' w-72 p-7 mt-2'>
+        <div className=' w-96 p-7 mt-2'>
             {progress > 0 && (
                 <>
                     <div className='text-white'>
