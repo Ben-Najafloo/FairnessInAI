@@ -12,11 +12,11 @@ const LeftDashboard = () => {
     }
 
     return (
-        <div className=' w-96 p-7 mt-2'>
+        <div className=' w-96 p-5'>
             {progress > 0 && (
                 <>
-                    <div className='text-white'>
-                        <p className='text-sm'>Experiment by using your own dataset then, determine the <span className='font-bold'>Label Column, Fairness Metric,</span> and <span className='font-bold'> Sensitive Column</span>  to assess bias and fairness.</p>
+                    <div className='text-white h-24'>
+                        <p className='text-sm'>Experiment by using your own dataset then, determine the <span className='font-bold'>Label Column,</span> and <span className='font-bold'> Sensitive Column</span>  to assess bias and fairness.</p>
                     </div>
                     <Progress />
                 </>

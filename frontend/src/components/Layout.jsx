@@ -20,7 +20,7 @@ const Layout = () => {
             <Nav className="h-1/5" />
             <main className="flex h-4/5">
                 <LeftDashboard />
-                <div className="w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+                <div className="w-full h-full mx-auto px-4 pt-6 sm:px-6 lg:px-8">
                     <Outlet />
                 </div>
             </main>
