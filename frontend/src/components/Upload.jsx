@@ -44,7 +44,7 @@ const Upload = () => {
     const handleSensitiveColumn = () => {
         // Ensure label and sensitive columns are selected
         if (!labelColumn) {
-            setLabelErrorMessage("Please select label columns.");
+            setLabelErrorMessage("Please select the target label.");
             return;
         } else {
             setFileName(false);
@@ -78,7 +78,7 @@ const Upload = () => {
 
     const handleProblemType = () => {
         if (!sensitiveColumn) {
-            setSensitiveErrorMessage("Please select at least one sensitive columns.");
+            setSensitiveErrorMessage("Please select at least one sensitive column.");
             return;
         } else {
             setSensitiveCulumnBox(false);
@@ -112,7 +112,9 @@ const Upload = () => {
             const fileExtension = selectedFile.name.split('.').pop().toLowerCase(); // Extract file extension
 
             if (!allowedFormats.includes(fileExtension)) {
+                console.log('is an Invalid file format')
                 setErrorMessage(`${fileExtension} is an Invalid file format. Please upload a file in one of the following formats: ${allowedFormats.join(", ")}`);
+                console.log(errorMessage)
                 setDatasetFile(null); // Reset the dataset file state
                 setFileName(""); // Clear the file name display
                 setColumns([]);
@@ -157,7 +159,7 @@ const Upload = () => {
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Ensure a file is selected
+
         if (!problemTypeColumn) {
             setProblemErrorMessage("Please select a problem type.");
             return;
@@ -170,6 +172,8 @@ const Upload = () => {
         formData.append("sensitive_column", sensitiveColumn);
         formData.append("sensitive_column2", sensitiveColumn2 || "");
         formData.append("problem_type", problemTypeColumn);
+
+        console.log(labelColumn, sensitiveColumn);
 
         try {
             // Send POST request to the backend
@@ -199,12 +203,23 @@ const Upload = () => {
                             <div className="relative items-center  justify-center">
                                 {/* Conditionally render elements based on datasetFile state */}
                                 <div className='text-xl pt-8 text-center text-gray-500 dark:text-gray-400 relative items-center justify-center'>
-                                    <p>Load the Dataset</p>
-                                    <br />
-                                    <FaFileUpload className="w-8 h-8 mb-4 text-center m-auto" />
-                                    <p className="mb-7 ">
-                                        <span className="font-semibold">Click to upload</span> or drag and drop
-                                    </p>
+
+                                    {errorMessage ? (
+                                        <p>
+                                            <span className="text-red-600">{errorMessage}</span>
+                                            <br /><br />
+                                            Please tray again!
+                                            <br />
+                                            <span className="font-semibold">Click to upload</span> or drag and drop
+                                        </p>
+                                    ) : (<>
+                                        <p>Load the Dataset (Please upload in <span className='font-bold'> CSV, JSON, XLS, XLSX </span> format) </p>
+                                        <br />
+                                        <FaFileUpload className="w-8 h-8 mb-5 text-center m-auto" />
+                                        <p className="mb-7 ">
+                                            <span className="font-semibold">Click to upload</span> or drag and drop
+                                        </p>
+                                    </>)}
                                 </div>
 
 
@@ -222,7 +237,7 @@ const Upload = () => {
 
             {fileName && (
                 <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
-                    <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
                         {labelErrorMessage && (
                             <p className="mb-2 text-red-600">
                                 {labelErrorMessage}
@@ -232,14 +247,15 @@ const Upload = () => {
                         {/* Display column names if available */}
                         {columns.length > 0 && (
                             <div className="items-center justify-center">
-                                <div className='mt-5'>
-                                    <p className="text-base text-gray-700 dark:text-white">
-                                        Selected file:
-                                        <strong> {fileName}</strong>
-                                    </p>
-                                    <p className='mb-3'>
+                                <div className='mt-3 ml-3'>
+
+                                    <p className='absolute top-3 left-3'>
+                                        <span className="text-base text-gray-700 dark:text-white">
+                                            Selected file:
+                                            <strong> {fileName}</strong>
+                                        </span> <br />
                                         Now set the value for
-                                        <span className='italic font-bold text-lg'> Label Column</span>
+                                        <span className='italic font-bold text-lg'> the Target Label</span>
                                     </p>
                                     <div className=" mx-auto mt-3">
                                         <div
@@ -247,7 +263,13 @@ const Upload = () => {
                                             {columns.map((col, index) => (
 
                                                 <div key={col}>
-                                                    <input type="checkbox" id={col} value={col} onChange={(e) => setLabelColumn(e.target.value)} class="hidden peer" />
+                                                    <input type="radio"
+                                                        name="labelColumn"
+                                                        id={col}
+                                                        value={col}
+                                                        onChange={(e) => setLabelColumn(e.target.value)}
+                                                        checked={labelColumn === col}
+                                                        class="hidden peer" />
                                                     <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
                                                         <div class="block">
                                                             <div class="w-full text-base">{col}</div>
@@ -289,7 +311,7 @@ const Upload = () => {
 
             {sensitiveCulumnBox && (
                 <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
-                    <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
 
                         {sensitiveErrorMessage && (
                             <p className="mb-2 text-red-600">
@@ -300,8 +322,8 @@ const Upload = () => {
                         {/* Display column names if available */}
                         {columns.length > 0 && (
                             <div className="items-center justify-center">
-                                <div className='mt-5'>
-                                    <p className='mb-3'>
+                                <div className='mt-3 ml-3'>
+                                    <p className='absolute top-3 left-3'>
                                         Now set the value for
                                         <span className='italic font-bold text-lg'> Sensitive features</span>
                                         <br />*** You can chose one or two options

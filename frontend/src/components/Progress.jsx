@@ -5,7 +5,7 @@ import BeatLoader from "react-spinners/BeatLoader";
 const Progress = () => {
     const { progress } = useContext(ProgressContext); // Access progress from Context
 
-    const steps = ["Get Started", "Data Uploaded", "Label Selection", "Sensitive feature Selection", "Problem Type Selection", "Analysis", "Training", "Review", "Confirmation"];
+    const steps = ["Get Started", "Data Uploaded", "Target Label Selection", "Sensitive feature Selection", "Problem Type Selection", "Analysis", "Training", "Review", "Confirmation"];
 
     return (
         <div className="space-y-4">
