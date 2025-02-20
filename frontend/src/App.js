@@ -14,8 +14,9 @@ function App() {
     <ProgressProvider>
       <Router>
         <Routes>
+          <Route index element={<Home />} />
           <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
+
             <Route path="/upload" element={<Upload />} />
             <Route path="/result" element={<Result />} />
             <Route path='/dataset-info' element={<DatasetInfo />} />

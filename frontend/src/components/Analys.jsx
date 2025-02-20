@@ -22,14 +22,14 @@ const Analys = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setProgress(6);
+            setProgress(9);
         }, 3000);
 
         return () => clearTimeout(timer);
     }, [setProgress]);
 
     const handleSharing = () => {
-        setProgress(7);
+        setProgress(10);
         setIsShared(!isShared);
     };
 
@@ -94,20 +94,20 @@ const Analys = () => {
     } = evaluation || {};
 
     return (
-        <div className='pl-5 pt-5 pr-5 relative '>
+        <div className='pl-5 pr-5 relative '>
 
             <div class="lg:flex lg:items-center lg:justify-between">
                 <div class="min-w-0 flex-1">
-                    <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-                        <div class="mt-2 flex items-center text-sm text-gray-200">
+                    <div class="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+                        <div class="flex items-center text-sm text-gray-200">
                             <svg class="mr-1.5 size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
                                 <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
                             </svg>
-                            Closing on January 9, 2020
+                            Done on January 9, 2025
                         </div>
                     </div>
                 </div>
-                <div class="mt-5 flex lg:ml-4 lg:mt-0">
+                <div class="flex lg:ml-4 lg:mt-0">
                     <span class="hidden sm:block">
                         <Link to="/"
                             className="text-blue-500 flex border-2 border-blue-500 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
@@ -170,7 +170,7 @@ const Analys = () => {
                 </div>
             )}
 
-            <div className='h-[610px] max-h-[630px] overflow-auto mt-4'>
+            <div className='h-[520px] max-h-[540px] overflow-auto mt-4'>
                 <section id="analysis-section" className="px-24 pt-7 pb-2 antialiased mb-7 bg-gray-800 py-4 rounded-lg">
 
                     <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
@@ -215,13 +215,12 @@ const Analys = () => {
                             </div>
                         </div>
 
-                        {/* oooooo <br />oooooo <br />oooooo <br />oooooo <br />oooooo <br />oooooo <br />oooooo <br />oooooo <br /> */}
                     </div>
 
                     <div className="grid gap-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 mt-2 ">
-                        <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                        {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                             <span className="text-base  text-gray-900 dark:text-white">Sensitive Label Mapping:</span><br />
-                            <ul>
+                            <ul className='grid w-full gap-6 md:grid-cols-5'>
                                 {Object.entries(sensitive_label_mapping).map(([label, value]) => (
                                     <li key={label}
                                         className="text-sm text-gray-900 dark:text-white">
@@ -229,6 +228,22 @@ const Analys = () => {
                                     </li>
                                 ))}
                             </ul>
+                        </div> */}
+
+                        <span className="text-base text-gray-900 dark:text-white mt-5">Sensitive Label Mapping:</span>
+                        <div className="flex items-center justify-center ">
+                            <div className="container mx-auto p-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
+                                    {Object.entries(sensitive_label_mapping).map(([label, value]) => (
+                                        <div
+                                            key={label}
+                                            className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                        >
+                                            <span>{label}:</span> <span className='ml-3'>{value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
 
 
@@ -238,13 +253,10 @@ const Analys = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
                                     {sensitive_test.map((value, index) => (
                                         <div
-                                            initial={{ opacity: 0, y: 5 }}
-                                            animate={{ opacity: 1, y: 0 }}
                                             key={index}
                                             className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                         >
                                             <div className="text-sm mb-1 text-gray-700">Test Result {index + 1}: {value}</div>
-
                                         </div>
                                     ))}
                                 </div>

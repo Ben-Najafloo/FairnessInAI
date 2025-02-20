@@ -47,6 +47,7 @@ def upload_file():
         # Get label and sensitive columns
         label_column = request.form.get('label_column')
         sensitive_column = request.form.get('sensitive_column')
+        sensitive_column2 = request.form.get('sensitive_column2')
 
         # logging.info(f"Label column: {label_column}")
         # logging.info(f"Sensitive column: {sensitive_column}")
@@ -78,6 +79,7 @@ def upload_file():
             'label_column': label_column,
             'file_name': file.filename,
             'sensitive_column': sensitive_column,
+            'sensitive_column2': sensitive_column2,
             'data_shape': list(data.shape),  # Convert tuple to list
             'features_shape': list(X.shape)  # Convert tuple to list
         }

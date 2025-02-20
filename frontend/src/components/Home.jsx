@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ProgressContext } from "../ProgressContext";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import Nav from "./Nav";
 
 const Home = () => {
     const { setProgress } = useContext(ProgressContext); // Access `setProgress`
@@ -11,16 +12,13 @@ const Home = () => {
     };
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setProgress(1);
-        }, 3000);
-
-        return () => clearTimeout(timer);
+        setProgress(0);
     }, [setProgress]);
 
     return (
-        <div>
-            <div className="w-full flex flex-col p-7 items-center justify-center m-auto">
+        <div className="h-screen bg-gradient-to-b from-gray-500 to-gray-900">
+            <Nav className="h-1/10 flex" />
+            <div className="w-full flex flex-col p-7 items-center justify-center m-auto mx-auto h-9/10 overflow-y-auto ">
                 <h1 className="text-6xl mt-52 text-white font-bold">Fairness in AI</h1>
                 <p className="text-xl m-5 text-white">
                     Preprocess data, select modeling techniques, and apply fairness metrics to analyze and mitigate bias.

@@ -5,12 +5,12 @@ import BeatLoader from "react-spinners/BeatLoader";
 const Progress = () => {
     const { progress } = useContext(ProgressContext); // Access progress from Context
 
-    const steps = ["Get Started", "Data Uploaded", "Analysis", "Training", "Review", "Confirmation"];
+    const steps = ["Get Started", "Data Uploaded", "Label Selection", "Sensitive feature Selection", "Problem Type Selection", "Analysis", "Training", "Review", "Confirmation"];
 
     return (
-        <div className="space-y-4 mt-9">
+        <div className="space-y-4">
             <h1 className="text-white">Progress Steps:</h1>
-            <ol className="space-y-3 text-sm">
+            <ol className="space-y-2 text-sm">
                 {steps.map((step, index) => (
                     <li key={index}>
                         <div
