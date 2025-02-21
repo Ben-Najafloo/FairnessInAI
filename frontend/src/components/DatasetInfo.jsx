@@ -10,6 +10,9 @@ import { GiHumanTarget } from "react-icons/gi";
 
 import { motion } from 'framer-motion';
 
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
 const DatasetInfo = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -41,6 +44,89 @@ const DatasetInfo = () => {
     const handleStartTraining = () => {
         setProgress(7);
         navigate("/training", { state: { datasetInfo: datasetInfo } });
+    };
+
+    //Histogram for basic statistics
+    ChartJS.register(BarElement, CategoryScale, LinearScale);
+    const Histogram = ({ column, stats }) => {
+        if (!stats || !stats.count) return null;
+
+        const { count, unique, freq, top, mean, std, min, max, "25%": q1, "50%": median, "75%": q3 } = stats;
+
+        let labels = [];
+        let dataValues = [];
+
+        if (unique && freq) {
+            // **Categorical Data Handling**
+            labels = [`${top} `, "Others"];
+            dataValues = [freq, count - freq];
+        } else if (min !== undefined && max !== undefined) {
+            // **Numerical Data Handling**
+            labels = [`Min (${min})`, `25% (${q1 || min})`, `50% (${median || mean})`, `75% (${q3 || max})`, `Max (${max})`];
+
+            // Estimate frequencies assuming normal-like spread
+            dataValues = [
+                count * 0.1,  // Min
+                count * 0.25, // Q1
+                count * 0.35, // Median
+                count * 0.2,  // Q3
+                count * 0.1   // Max
+            ];
+        }
+
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: `Histogram for ${column}`,
+                    data: dataValues,
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(153, 102, 255, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 99, 132, 1)'],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        return (
+            <div className="my-4">
+                <Bar data={data} />
+            </div>
+        );
+    };
+
+    const ClassDistributionChart = ({ classDistribution }) => {
+        if (!classDistribution) return <p className="text-gray-100">Class distribution not available.</p>;
+
+        const labels = Object.keys(classDistribution);
+        const dataValues = Object.values(classDistribution).map(percent => percent * 100); // Convert to percentage
+
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: 'Class Distribution (%)',
+                    data: dataValues,
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            indexAxis: 'y', // Horizontal bar chart
+            scales: {
+                x: { beginAtZero: true, max: 100 },
+            },
+            elements: {
+                bar: {
+                    barThickness: 10, // Adjust this value to decrease bar height
+                },
+            },
+            maintainAspectRatio: false, // Allows custom height adjustments
+        };
+
+        return <Bar data={data} options={options} />;
     };
 
     return (
@@ -250,18 +336,20 @@ const DatasetInfo = () => {
                             <div className="flex items-center justify-center">
                                 <div className="container mx-auto p-4">
                                     {basicStatisticsIsExpanded && (
-                                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             {Object.entries(dataset_summary.statistics).map(([col, stats]) => (
                                                 <div
                                                     key={col}
                                                     className="px-1 py-1 border text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                                 >
-                                                    <span className="text-blue-600">{col}:</span>
+                                                    <strong className="text-blue-600">{col}:</strong>
                                                     <ul>
                                                         {Object.entries(stats).map(([stat, value]) => (
                                                             <li key={stat} className="text-sm mb-1">{stat}: {value}</li>
                                                         ))}
                                                     </ul>
+
+                                                    <Histogram column={col} stats={stats} />
                                                 </div>
 
                                             ))}
@@ -273,17 +361,24 @@ const DatasetInfo = () => {
                             <p className="text-gray-100">No statistics available.</p>
                         )}
 
+
                         {/* Class Distribution */}
                         <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
                         {dataset_summary.class_distribution ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
-                                    <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
-                                ))}
-                            </ul>
+                            <div className="flex flex-col md:flex-row items-center">
+                                {/* <ul className="text-gray-100 mr-4">
+                                    {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
+                                        <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
+                                    ))}
+                                </ul> */}
+                                <div className="w-full md:w-1/2">
+                                    <ClassDistributionChart classDistribution={dataset_summary.class_distribution} />
+                                </div>
+                            </div>
                         ) : (
                             <p className="text-gray-100">Class distribution not available.</p>
                         )}
+
 
                         {/* Outliers */}
                         <h4 className="text-md text-blue-300 mt-6">Outliers Detected:</h4>
