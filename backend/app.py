@@ -41,21 +41,34 @@ def upload_file():
     try:
         # Read the dataset
         data = pd.read_csv(file)
-        # logging.debug(f"Data columns: {data.columns}")
-        # logging.debug(f"Data dimensions: {data.shape}")
+
+
+        # Identify and drop a unique ID column
+        dropped_column = None
+        for col in data.columns:
+            if data[col].nunique() == len(data):  # Check uniqueness
+                dropped_column = col
+                data = data.drop(columns=[col])
+                logging.info(f"Dropped ID column: {col}")
+                break  # Remove only one unique ID column
 
         # Get label and sensitive columns
         label_column = request.form.get('label_column')
         sensitive_column = request.form.get('sensitive_column')
         sensitive_column2 = request.form.get('sensitive_column2')
-
-        # logging.info(f"Label column: {label_column}")
-        # logging.info(f"Sensitive column: {sensitive_column}")
+        problem_type = request.form.get('problem_type')
 
         if label_column not in data.columns or sensitive_column not in data.columns:
             logging.warning(f"Label column '{label_column}' or sensitive column '{sensitive_column}' not found.")
             return jsonify({'error': f"Columns '{label_column}' or '{sensitive_column}' not found in dataset"}), 400
 
+         # Determine label column type (categorical or continuous)
+        if data[label_column].dtype in ['int64', 'float64'] and data[label_column].nunique() > 10:
+            label_type = 'Continuous'
+        else:
+            label_type = 'Categorical'
+        logging.info(f"Label column '{label_column}' is detected as {label_type}.")
+        
         # Preprocess data
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
         logging.info("Preprocessing completed successfully.")
@@ -77,26 +90,24 @@ def upload_file():
             'message': 'Dataset processed successfully.',
             'dataset_summary': dataset_summary,
             'label_column': label_column,
+            'label_type': label_type,
             'file_name': file.filename,
             'sensitive_column': sensitive_column,
             'sensitive_column2': sensitive_column2,
+            'problem_type': problem_type,
             'data_shape': list(data.shape),  # Convert tuple to list
-            'features_shape': list(X.shape)  # Convert tuple to list
+            'features_shape': list(X.shape),  # Convert tuple to list
+            'dropped_column': dropped_column
         }
-
-
 
         # Store data and metadata in a global variable
         uploaded_data['data'] = data
         uploaded_data['label_column'] = label_column
         uploaded_data['sensitive_column'] = sensitive_column
-
         logging.info("Data and metadata stored in global variable.")
 
-        # logging.info(f"Response to frontend: {response}")  # Log for debugging
         return jsonify(response)
     
-
     except Exception as e:
         logging.error(f"Error during file upload: {e}")
         return jsonify({'error': str(e)}), 500
@@ -120,7 +131,6 @@ def get_data_types(df):
 def get_statistics(df):
     """Returns basic statistics for numerical columns."""
     stats = df.describe().round(2).to_dict()
-    # logging.debug(f"Statistics: {stats}")
     return stats
 
 

@@ -1,12 +1,11 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { ProgressContext } from '../ProgressContext';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import Papa from 'papaparse';
 import { FaArrowRightLong, FaArrowLeftLong } from "react-icons/fa6";
-import { FaFileUpload } from "react-icons/fa";
-
-import { useNavigate } from "react-router-dom";
-// import { motion } from 'framer-motion';
+import { FaFileUpload, FaAmericanSignLanguageInterpreting } from "react-icons/fa";
+import { GiHumanTarget } from "react-icons/gi";
 
 import regImg from '../img/reg2.png';
 import claImg from '../img/class2.png';
@@ -40,6 +39,20 @@ const Upload = () => {
     //show all columns of dataset
     const [columns, setColumns] = useState([]);
 
+    //Add pagination state on all columns of dataset
+    const itemsPerPage = 20;
+    const [targetCurrentPage, setTargetCurrentPage] = useState(1);
+    const [sensitiveCurrentPage, setSensitiveCurrentPage] = useState(1);
+    const totalPages = Math.ceil(columns.length / itemsPerPage);
+
+    const currentLabels = columns.slice(
+        (targetCurrentPage - 1) * itemsPerPage,
+        targetCurrentPage * itemsPerPage
+    );
+    const currentSensitive = columns.slice(
+        (sensitiveCurrentPage - 1) * itemsPerPage,
+        sensitiveCurrentPage * itemsPerPage
+    );
 
     const handleSensitiveColumn = () => {
         // Ensure label and sensitive columns are selected
@@ -54,7 +67,6 @@ const Upload = () => {
             setProgress(4);
         }
     }
-
 
     // Handle checkbox change
     const handleSensitiveOptions = (value) => {
@@ -74,7 +86,6 @@ const Upload = () => {
             alert("You can only select up to two sensitive columns.");
         }
     };
-
 
     const handleProblemType = () => {
         if (!sensitiveColumn) {
@@ -101,7 +112,6 @@ const Upload = () => {
         setProblemType(false);
         setSensitiveCulumnBox(true);
     }
-
 
     // Handle file input change
     const handleFileChange = (e) => {
@@ -173,7 +183,7 @@ const Upload = () => {
         formData.append("sensitive_column2", sensitiveColumn2 || "");
         formData.append("problem_type", problemTypeColumn);
 
-        console.log(labelColumn, sensitiveColumn);
+        console.log(labelColumn, sensitiveColumn, problemTypeColumn);
 
         try {
             // Send POST request to the backend
@@ -191,9 +201,7 @@ const Upload = () => {
         }
     };
 
-
     return (
-
         <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
 
             {!datasetFile && (
@@ -239,28 +247,30 @@ const Upload = () => {
                 <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
                     <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
                         {labelErrorMessage && (
-                            <p className="mb-2 text-red-600">
+                            <p className="mb-2 text-red-600 absolute top-11">
                                 {labelErrorMessage}
                             </p>
                         )}
 
                         {/* Display column names if available */}
                         {columns.length > 0 && (
-                            <div className="items-center justify-center">
+                            <div className="items-center justify-center w-full px-4">
                                 <div className='mt-3 ml-3'>
 
-                                    <p className='absolute top-3 left-3'>
-                                        <span className="text-base text-gray-700 dark:text-white">
+                                    <p className='absolute top-3 left-3 w-full'>
+                                        <span className="text-base text-gray-700 dark:text-white pb-2">
                                             Selected file:
                                             <strong> {fileName}</strong>
                                         </span> <br />
-                                        Now set the value for
-                                        <span className='italic font-bold text-lg'> the Target Label</span>
+                                        <GiHumanTarget class="w-9 h-9 absolute top-2 right-9" />
+                                        Now set
+                                        <span className='italic font-bold text-lg'> the Target Label </span>
+                                        to perform ML model
                                     </p>
-                                    <div className=" mx-auto mt-3">
+                                    <div className=" mx-auto mt-3 w-full">
                                         <div
-                                            className="grid grid-cols-1 px-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
-                                            {columns.map((col, index) => (
+                                            className="grid grid-cols-1 h-48 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
+                                            {currentLabels.map((col, index) => (
 
                                                 <div key={col}>
                                                     <input type="radio"
@@ -270,7 +280,7 @@ const Upload = () => {
                                                         onChange={(e) => setLabelColumn(e.target.value)}
                                                         checked={labelColumn === col}
                                                         class="hidden peer" />
-                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                    <label htmlFor={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
                                                         <div class="block">
                                                             <div class="w-full text-base">{col}</div>
                                                         </div>
@@ -279,6 +289,35 @@ const Upload = () => {
 
                                             ))}
                                         </div>
+
+                                        {columns.length > itemsPerPage && (
+                                            <div class="flex flex-col mt-5">
+                                                <div class="inline-flex justify-end mt-2 xs:mt-0">
+
+                                                    <button
+                                                        onClick={() => setTargetCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                                        disabled={targetCurrentPage === 1}
+                                                        class="flex items-center justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <span className='mx-2'>Items {targetCurrentPage} of {totalPages}</span>
+
+                                                    <button
+                                                        onClick={() => setTargetCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                                        disabled={targetCurrentPage === totalPages}
+                                                        class="flex items-center mr-5 justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                                                        </svg>
+                                                    </button>
+                                                    <span>Number of labels: {columns.length}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
                                     </div>
                                 </div>
                             </div>
@@ -314,24 +353,25 @@ const Upload = () => {
                     <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
 
                         {sensitiveErrorMessage && (
-                            <p className="mb-2 text-red-600">
+                            <p className="mb-2 text-red-600 absolute top-11">
                                 {sensitiveErrorMessage}
                             </p>
                         )}
 
                         {/* Display column names if available */}
                         {columns.length > 0 && (
-                            <div className="items-center justify-center">
+                            <div className="items-center justify-center w-full px-4">
                                 <div className='mt-3 ml-3'>
-                                    <p className='absolute top-3 left-3'>
-                                        Now set the value for
-                                        <span className='italic font-bold text-lg'> Sensitive features</span>
-                                        <br />*** You can chose one or two options
+                                    <p className='absolute top-3 left-3 w-full'>
+                                        <FaAmericanSignLanguageInterpreting class="w-9 h-9 absolute top-2 right-9" />
+                                        Now select the label as
+                                        <span className='italic font-bold text-lg'> the Sensitive features</span>
+                                        <br /><span className='text-green-500'>*** You can chose one or two options</span>
                                     </p>
                                     <div className=" mx-auto mt-3">
                                         <div
-                                            className="grid grid-cols-1 px-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
-                                            {columns.map((col, index) => (
+                                            className="grid grid-cols-1 h-48 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
+                                            {currentSensitive.map((col, index) => (
 
                                                 <div key={index}>
                                                     <input type="checkbox"
@@ -340,7 +380,7 @@ const Upload = () => {
                                                         checked={col === sensitiveColumn || col === sensitiveColumn2}
                                                         onChange={() => handleSensitiveOptions(col)}
                                                         className="hidden peer" />
-                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
                                                         <div class="block">
                                                             <div class="w-full text-base">{col}</div>
                                                         </div>
@@ -348,16 +388,35 @@ const Upload = () => {
                                                 </div>
 
                                             ))}
-
-                                            {/* <div>
-                                                <p>Selected Sensitive Columns:</p>
-                                                <ul>
-                                                    {sensitiveColumn && <li>{sensitiveColumn}</li>}
-                                                    {sensitiveColumn2 && <li>{sensitiveColumn2}</li>}
-                                                </ul>
-                                            </div> */}
-
                                         </div>
+                                        {columns.length > itemsPerPage && (
+                                            <div class="flex flex-col mt-5">
+                                                <div class="inline-flex mt-2 xs:mt-0 justify-end">
+
+                                                    <button
+                                                        onClick={() => setSensitiveCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                                        disabled={sensitiveCurrentPage === 1}
+                                                        class="flex items-center justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <span className='mx-2'>Items {sensitiveCurrentPage} of {totalPages}</span>
+
+                                                    <button
+                                                        onClick={() => setSensitiveCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                                        disabled={sensitiveCurrentPage === totalPages}
+                                                        class="flex items-center mr-5 justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                                                        </svg>
+                                                    </button>
+                                                    <span>Number of labels: {columns.length}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
                                     </div>
                                 </div>
                             </div>

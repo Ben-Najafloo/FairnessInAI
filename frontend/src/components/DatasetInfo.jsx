@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import { BsCaretDownFill } from "react-icons/bs";
 import { FaBalanceScaleLeft, FaAmericanSignLanguageInterpreting } from "react-icons/fa";
-import { MdTableRows, MdViewColumn } from "react-icons/md";
+import { MdTableRows, MdViewColumn, MdSyncProblem } from "react-icons/md";
+import { FaScissors } from "react-icons/fa6";
 import { VscEmptyWindow } from "react-icons/vsc";
 import { GiHumanTarget } from "react-icons/gi";
 
@@ -32,7 +33,7 @@ const DatasetInfo = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
 
-    const { label_column, sensitive_column, sensitive_column2, data_shape, dataset_summary } = datasetInfo;
+    const { label_column, sensitive_column, sensitive_column2, problem_type, data_shape, dataset_summary, dropped_column, label_type } = datasetInfo;
 
     const handleConfirmation = () => {
         setShowConfirmationModal(!showConfirmationModal);
@@ -76,10 +77,10 @@ const DatasetInfo = () => {
                                         Cancel the Process
                                     </button>
                                     <button type="button" className="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 dark:bg-green-700 dark:text-green-300 dark:border-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-600">
-                                        Balance and Continue
+                                        Balance
                                     </button>
                                     <button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
-                                        Continue Anymore
+                                        Continue Anyway
                                     </button>
                                 </div>
                             </div>
@@ -87,7 +88,8 @@ const DatasetInfo = () => {
                         </div>
                     )}
 
-                    <div className=" bg-gray-800 p-9 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
+                    <div className=" bg-gray-800 px-9 py-5 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
+                        <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Data Description</h2>
 
                         {/* Display Dataset Details */}
                         <ul class="grid w-full gap-6 md:grid-cols-3">
@@ -115,7 +117,7 @@ const DatasetInfo = () => {
                                 <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <GiHumanTarget class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Label Column: {label_column}   </div>
+                                        <div class="w-full text-base ">Target Label: {label_column.toUpperCase()} ({label_type})  </div>
                                     </div>
                                 </label>
                             </li>
@@ -123,12 +125,20 @@ const DatasetInfo = () => {
                                 <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <FaAmericanSignLanguageInterpreting class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Sensitive Column(s): {sensitive_column}
+                                        <div class="w-full text-base ">Sensitive Column(s): {sensitive_column.toUpperCase()}
                                             {sensitive_column2 && (
                                                 <span> , &nbsp; &nbsp;
-                                                    {sensitive_column2}
+                                                    {sensitive_column2.toUpperCase()}
                                                 </span>
                                             )}</div>
+                                    </div>
+                                </label>
+                            </li>
+                            <li>
+                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div class="block">
+                                        <MdSyncProblem class="mb-2 w-7 h-7" />
+                                        <div class="w-full text-base ">Problem Type: {problem_type.toUpperCase()}   </div>
                                     </div>
                                 </label>
                             </li>
@@ -159,6 +169,16 @@ const DatasetInfo = () => {
                                             ) : (
                                                 <span className="text-gray-100"> No missing data detected.</span>
                                             )}
+                                        </div>
+                                    </div>
+                                </label>
+                            </li>
+                            <li>
+                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div class="block">
+                                        <FaScissors class="mb-2 w-7 h-7" />
+                                        <div class="w-full text-base ">Dropped Columns:<br />
+                                            {dropped_column}
                                         </div>
                                     </div>
                                 </label>
@@ -232,19 +252,17 @@ const DatasetInfo = () => {
                                     {basicStatisticsIsExpanded && (
                                         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                                             {Object.entries(dataset_summary.statistics).map(([col, stats]) => (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
+                                                <div
                                                     key={col}
-                                                    className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                    className="px-1 py-1 border text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                                 >
-                                                    <strong>{col}:</strong>
+                                                    <span className="text-blue-600">{col}:</span>
                                                     <ul>
                                                         {Object.entries(stats).map(([stat, value]) => (
                                                             <li key={stat} className="text-sm mb-1">{stat}: {value}</li>
                                                         ))}
                                                     </ul>
-                                                </motion.div>
+                                                </div>
 
                                             ))}
                                         </div>
@@ -266,18 +284,6 @@ const DatasetInfo = () => {
                         ) : (
                             <p className="text-gray-100">Class distribution not available.</p>
                         )}
-
-                        {/* Sensitive Column Distribution */}
-                        {/* <h4 className="text-md text-blue-300 mt-6">Sensitive Column Distribution:</h4>
-                        {dataset_summary.sensitive_column_distribution ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.sensitive_column_distribution).map(([val, percent]) => (
-                                    <li key={val}>{val}: {(percent * 100).toFixed(2)}%</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-100">Sensitive column distribution not available.</p>
-                        )} */}
 
                         {/* Outliers */}
                         <h4 className="text-md text-blue-300 mt-6">Outliers Detected:</h4>
