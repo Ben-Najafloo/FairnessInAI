@@ -174,6 +174,13 @@ const DatasetInfo = () => {
                         </div>
                     )}
 
+
+
+
+
+
+
+
                     <div className=" bg-gray-800 px-9 py-5 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
                         <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Data Description</h2>
 
@@ -271,6 +278,24 @@ const DatasetInfo = () => {
                             </li>
                         </ul>
 
+                        {/* Class Distribution */}
+                        <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
+                        {dataset_summary.class_distribution ? (
+                            <div className="flex flex-col md:flex-row items-center">
+                                {/* <ul className="text-gray-100 mr-4">
+                                    {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
+                                        <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
+                                    ))}
+                                </ul> */}
+                                <div className="w-full">
+                                    <ClassDistributionChart classDistribution={dataset_summary.class_distribution} />
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-gray-100">Class distribution not available.</p>
+                        )}
+
+
 
                         {/* Data Types */}
                         <div className="flex text-md text-blue-300 mt-6">
@@ -359,24 +384,6 @@ const DatasetInfo = () => {
                             </div>
                         ) : (
                             <p className="text-gray-100">No statistics available.</p>
-                        )}
-
-
-                        {/* Class Distribution */}
-                        <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
-                        {dataset_summary.class_distribution ? (
-                            <div className="flex flex-col md:flex-row items-center">
-                                {/* <ul className="text-gray-100 mr-4">
-                                    {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
-                                        <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
-                                    ))}
-                                </ul> */}
-                                <div className="w-full md:w-1/2">
-                                    <ClassDistributionChart classDistribution={dataset_summary.class_distribution} />
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-gray-100">Class distribution not available.</p>
                         )}
 
 
