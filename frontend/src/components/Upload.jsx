@@ -256,7 +256,6 @@ const Upload = () => {
                         {columns.length > 0 && (
                             <div className="items-center justify-center w-full px-4">
                                 <div className='mt-3 ml-3'>
-
                                     <p className='absolute top-3 left-3 w-full'>
                                         <span className="text-base text-gray-700 dark:text-white pb-2">
                                             Selected file:
@@ -271,7 +270,6 @@ const Upload = () => {
                                         <div
                                             className="grid grid-cols-1 h-48 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
                                             {currentLabels.map((col, index) => (
-
                                                 <div key={col}>
                                                     <input type="radio"
                                                         name="labelColumn"
@@ -286,7 +284,6 @@ const Upload = () => {
                                                         </div>
                                                     </label>
                                                 </div>
-
                                             ))}
                                         </div>
 
@@ -447,19 +444,22 @@ const Upload = () => {
             {problemType && (
                 <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
                     <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
-
                         {problemErrorMessage && (
                             <p className="mb-2 text-red-600">
                                 {problemErrorMessage}
                             </p>
                         )}
-
                         <div className="items-center justify-center">
                             <h3 class="mb-5 text-xl font-medium text-gray-900 dark:text-white">Choose the Problem Type:</h3>
                             <ul class="grid w-full gap-6 md:grid-cols-2">
-
                                 <li>
-                                    <input type="checkbox" id="regression" onChange={(e) => setProblemTypeColumn(e.target.value)} value="regression" class="hidden peer" />
+                                    <input
+                                        type="radio"
+                                        id="regression"
+                                        onChange={(e) => setProblemTypeColumn(e.target.value)}
+                                        value="regression"
+                                        checked={problemTypeColumn === "regression"}
+                                        class="hidden peer" />
                                     <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                         <div class="block">
                                             <div className='flex'>
@@ -469,13 +469,18 @@ const Upload = () => {
                                                     <p class="w-72 text-sm">Regression predicts a continuous output based on input features.</p>
                                                 </div>
                                             </div>
-
                                         </div>
                                     </label>
                                 </li>
                                 <li>
-                                    <input type="checkbox" id="angular-option" onChange={(e) => setProblemTypeColumn(e.target.value)} value="classification" class="hidden peer" />
-                                    <label for="angular-option" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                    <input
+                                        type="radio"
+                                        id="classification"
+                                        onChange={(e) => setProblemTypeColumn(e.target.value)}
+                                        value="classification"
+                                        checked={problemTypeColumn === "classification"}
+                                        class="hidden peer" />
+                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                         <div class="block">
                                             <div className='flex'>
                                                 <img src={claImg} class="mb-2 w-20 h-20" />
@@ -484,7 +489,6 @@ const Upload = () => {
                                                     <p class="w-72 text-sm">Classification categorizes inputs into discrete classes or labels.</p>
                                                 </div>
                                             </div>
-
                                         </div>
                                     </label>
                                 </li>

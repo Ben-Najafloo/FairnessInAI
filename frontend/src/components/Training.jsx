@@ -6,9 +6,13 @@ import axios from 'axios';
 
 const Training = () => {
 
-    // const location = useLocation(); // Access state passed during navigation
-    const navigate = useNavigate();
+    const location = useLocation();
     // const datasetInfo = location.state?.datasetInfo;
+    const { datasetInfo, doHandleMissData, doBalanceData } = location.state || {};
+    const { problem_type } = datasetInfo || {};
+    console.log(problem_type)
+
+    const navigate = useNavigate();
 
     const { setProgress } = useContext(ProgressContext);
 
@@ -80,21 +84,42 @@ const Training = () => {
         }
     };
 
-
-
     return (
         <div>
             <section>
+
                 <div className="md:pl-5 w-full">
                     <div className="bg-gray-800 py-4 px-9 rounded-lg h-[550px] md:max-h-[550px] overflow-auto">
-
+                        <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Final Configuration</h2>
                         <form className="w-full pl-4">
+
                             <p className='text-white leading-8'>According to the problem type and pre assessment of the fairness, it is suggested to use
-                                <br /> <span className='font-bold italic'>Logistic Regression</span>  algorithm for training, and
-                                <br /> <span className='font-bold italic'>Demographic Parity</span> metric for fairness analysis.
+                                <br />
+                                {problem_type && (<span className='font-bold italic mr-2 text-green-500'>
+                                    {problem_type.toUpperCase()}
+                                </span>)}
+                                algorithms for training.
                                 <br /> Also the ratio for splitting the dataset will be <span className='font-bold italic'> Testing: 20% and Training: 80%.</span>
-                                <br /><br />For manual configuration click <a onClick={configTable} className='text-blue-500 cursor-pointer'>here</a>
                             </p>
+                            {(doBalanceData || doHandleMissData) && (
+                                <span className='text-white leading-8'>Before processing of fairness assessment as there are:</span>
+                            )}
+                            {doHandleMissData && (
+                                <p className='text-white leading-8'>
+                                    <ul>
+                                        <li className='list-disc list-inside pl-3'> Missing value in your dataset, it will be handeled according to the type of missed values.</li>
+                                    </ul>
+                                </p>
+                            )}
+                            {doBalanceData && (
+                                <p className='text-white leading-8'>
+                                    <ul>
+                                        <li className='list-disc list-inside pl-3'> Imbalance class distribution in your dataset, it will be balanced (sintatic data points will be generated and added).</li>
+                                    </ul>
+                                </p>
+                            )}
+
+                            <p className='text-white leading-8 mt-7'>For manual configuration click <a onClick={configTable} className='text-blue-500 cursor-pointer'>here</a></p>
 
                             {showConfigTable && (
                                 <div className='pl-4'>

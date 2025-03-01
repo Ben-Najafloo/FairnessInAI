@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
-import { MdEmail, MdOutlineQrCodeScanner } from "react-icons/md";
+import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
 import { IoMdHome } from "react-icons/io";
 
 
@@ -109,14 +109,14 @@ const Analys = () => {
                 </div>
                 <div class="flex lg:ml-4 lg:mt-0">
                     <span class="hidden sm:block">
-                        <Link to="/"
-                            className="text-blue-500 flex border-2 border-blue-500 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
-                            <IoMdHome className="mr-3 text-xl" />Home
+                        <Link to="/upload"
+                            className="text-white flex border-2 border-white hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                            <MdAddchart className="mr-3 text-xl" />New Assessment
                         </Link>
                     </span>
 
                     <span class="ml-3 hidden sm:block">
-                        <button onClick={handleSharing} className="text-red-500 flex border-2 border-red-500 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                        <button onClick={handleSharing} className="text-blue-300 flex border-2 border-blue-300 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
                             Get Report <FaRegShareFromSquare className="ml-3 text-xl" />
                         </button>
                     </span>
