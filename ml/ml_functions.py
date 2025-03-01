@@ -5,8 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from fairlearn.metrics import demographic_parity_difference ,equalized_odds_difference
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from sklearn.preprocessing import StandardScaler
-from flask import jsonify
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -34,35 +32,47 @@ def preprocess_data(data, label_column, sensitive_column):
     """
     try:
         logger.info("Starting data preprocessing...")
-        logger.debug(f"Columns in the dataset: {list(data.columns)}")
-        logger.debug(
-            f"Target label: {label_column}, Sensitive attribute: {sensitive_column}")
+        # logger.debug(f"Columns in the dataset: {list(data.columns)}")
+        # logger.debug(
+        #     f"Target label: {label_column}, Sensitive attribute: {sensitive_column}")
 
         # Separate the features (X), label (y), and sensitive attribute (sensitive)
         X = data.drop([label_column, sensitive_column], axis=1)
         y = data[label_column]
         sensitive = data[sensitive_column]
 
-        # Handle missing data for numeric columns
-        numeric_columns = X.select_dtypes(include=['number']).columns
-        if numeric_columns.empty:
-            logger.warning("No numeric columns found in the dataset.")
-        else:
-            X[numeric_columns] = X[numeric_columns].fillna(
-                X[numeric_columns].mean())
-            logger.debug(
-                f"Filled missing values in numeric columns: {numeric_columns}")
+        # # Handle missing data for numeric columns
+        # numeric_columns = X.select_dtypes(include=['number']).columns
+        # if numeric_columns.empty:
+        #     logger.warning("No numeric columns found in the dataset.")
+        # else:
+        #     X[numeric_columns] = X[numeric_columns].fillna(
+        #         X[numeric_columns].mean())
+        #     logger.debug(
+        #         f"Filled missing values in numeric columns: {numeric_columns}")
 
-        # Handle missing data for non-numeric columns and encode them
+        # # Handle missing data for non-numeric columns and encode them
+        # non_numeric_columns = X.select_dtypes(exclude=['number']).columns
+        # if non_numeric_columns.empty:
+        #     logger.warning("No non-numeric columns found in the dataset.")
+        # else:
+        #     X[non_numeric_columns] = X[non_numeric_columns].fillna(
+        #         X[non_numeric_columns].mode().iloc[0]
+        #     )
+        #     logger.debug(
+        #         f"Filled missing values in non-numeric columns: {non_numeric_columns}")
+
+         # Handle missing data for numeric columns in X //////////////////////////////////////////////////////////////////////////
+        numeric_columns = X.select_dtypes(include=['number']).columns
+        if len(numeric_columns) > 0:
+            X[numeric_columns] = X[numeric_columns].fillna(X[numeric_columns].mean())
+            logging.debug(f"Filled missing values in numeric columns: {numeric_columns}")
+
+        # Handle missing data for non-numeric columns in X
         non_numeric_columns = X.select_dtypes(exclude=['number']).columns
-        if non_numeric_columns.empty:
-            logger.warning("No non-numeric columns found in the dataset.")
-        else:
-            X[non_numeric_columns] = X[non_numeric_columns].fillna(
-                X[non_numeric_columns].mode().iloc[0]
-            )
-            logger.debug(
-                f"Filled missing values in non-numeric columns: {non_numeric_columns}")
+        if len(non_numeric_columns) > 0:
+            X[non_numeric_columns] = X[non_numeric_columns].fillna(X[non_numeric_columns].mode().iloc[0])
+            logging.debug(f"Filled missing values in non-numeric columns: {non_numeric_columns}")
             
             # Perform one-hot encoding for non-numeric columns
             X = pd.get_dummies(X, columns=non_numeric_columns, drop_first=True)

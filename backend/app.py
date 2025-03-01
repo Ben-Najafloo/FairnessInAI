@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
-from ml.ml_functions import preprocess_data, train_model, train_model_with_fairness
 import logging
 from flask_cors import CORS
+from sklearn.impute import SimpleImputer
+from ml.ml_functions import preprocess_data, train_model, train_model_with_fairness
+
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +22,7 @@ app = Flask(__name__)
 CORS(app)
 
 uploaded_data = {}
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -52,6 +55,18 @@ def upload_file():
                 logging.info(f"Dropped ID column: {col}")
                 break  # Remove only one unique ID column
 
+        # Log missing data before preprocessing//////////////////////////////////////////////////////////////
+        # missing_data_before = get_missing_data(data)
+        # logging.info(f"Missing data before preprocessing: {missing_data_before}")
+
+        # # Handle missing values in the entire dataset
+        # logging.info("Handling missing data in the entire dataset.")
+        # data = handle_missing_data(data, strategy="mode")  # Use "mode" for categorical columns like 'sport' and 'decision'
+
+        # # Log missing data after handling
+        # missing_data_after_handling = get_missing_data(data)
+        # logging.info(f"Missing data after handling: {missing_data_after_handling}")
+        
         # Get label and sensitive columns
         label_column = request.form.get('label_column')
         sensitive_column = request.form.get('sensitive_column')
@@ -74,17 +89,28 @@ def upload_file():
         logging.info("Preprocessing completed successfully.")
         # logging.debug(f"Feature data (X) shape: {X.shape}")
 
+
+        # Log missing data after preprocessing///////////////////////////////////////////
+        # missing_data_after = get_missing_data(data)
+        # logging.info(f"Missing data after preprocessing: {missing_data_after}")
+        # Calculate missing data percentages
+        missing_data = get_missing_data(data)
+        logging.info(f"Missing data before handling: {missing_data}")
+
         # Generate Dataset Analysis
         dataset_summary = {
             'shape': list(data.shape),
             'columns': list(data.columns),
             'missing_data': get_missing_data(data),
+            # 'missing_data_after': missing_data_after,
             'data_types': get_data_types(data),
             'statistics': get_statistics(data),
             'outliers': detect_outliers(data),
             'class_distribution': get_class_distribution(data, label_column),
             'sensitive_column_distribution': get_sensitive_column_distribution(data, sensitive_column)
         }
+        logging.error(f"Missing data before handling: {get_missing_data(data)}")
+        
 
         response = {
             'message': 'Dataset processed successfully.',
@@ -120,19 +146,16 @@ def get_missing_data(df):
     # logging.debug(f"Missing data: {missing_data}")
     return missing_data
 
-
 def get_data_types(df):
     """Returns the data types of each column."""
     data_types = {col: str(dtype) for col, dtype in df.dtypes.items()}
     # logging.debug(f"Data types: {data_types}")
     return data_types
 
-
 def get_statistics(df):
     """Returns basic statistics for numerical columns."""
     stats = df.describe().round(2).to_dict()
     return stats
-
 
 def detect_outliers(df):
     """Detects outliers using the Z-score method."""
@@ -145,7 +168,6 @@ def detect_outliers(df):
     # logging.debug(f"Outliers detected: {outlier_summary}")
     return outlier_summary
 
-
 def get_class_distribution(df, label_column):
     """Returns the distribution of classes in the label column."""
     if label_column in df.columns:
@@ -153,7 +175,6 @@ def get_class_distribution(df, label_column):
         # logging.debug(f"Class distribution: {class_dist}")
         return class_dist
     return None
-
 
 def get_sensitive_column_distribution(df, sensitive_column):
     """Returns the distribution of the sensitive column."""
@@ -163,18 +184,27 @@ def get_sensitive_column_distribution(df, sensitive_column):
         return sensitive_dist
     return None
 
+# Missing Data Handling Function
+def handle_missing_data(df, strategy="mean"):
+    imputer = SimpleImputer(strategy=strategy)
+    df_numeric = df.select_dtypes(include=['number'])
+    df[df_numeric.columns] = imputer.fit_transform(df_numeric)
 
+    for col in df.select_dtypes(include=['object', 'category']).columns:
+        if df[col].isnull().any():
+            df[col].fillna(df[col].mode()[0], inplace=True)
+
+    return df
 
 @app.route('/train', methods=['POST'])
 def train_model():
     global uploaded_data
     try:
-
         # Retrieve data and columns from global storage
         if not uploaded_data:
             raise ValueError("No data found. Please upload a dataset first.")
 
-        data = uploaded_data['data']
+        data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
 
@@ -184,28 +214,46 @@ def train_model():
         fairness_metric = config['selectedFairnessMetrics'][0]
         performance_metric = config['selectedPerformanceMetrics'][0]
         test_size = config['splitRatio'] / 100
+        do_handle_miss_data = config.get('doHandleMissData', False)
+        strategy = config.get('strategy', 'mean')  # Default strategy is 'mean'
 
-        logging.info(f"Training with {algorithm}, Fairness: {fairness_metric}, Metric: {performance_metric}, Test size: {test_size}")
+        # Log missing data before handling
+        missing_data_before_handling = get_missing_data(data)
+        logging.info(f"Missing data before handling: {missing_data_before_handling}")
 
-        # Ensure X, y, and sensitive are available (from preprocess_data)
+        # Handle missing data if requested
+        if do_handle_miss_data:
+            logging.info(f"Handling missing data with strategy: {strategy}")
+            data = handle_missing_data(data, strategy=strategy)  # Reassign the modified dataset
+
+            # Log missing data after handling
+            missing_data_after_handling = get_missing_data(data)
+            logging.info(f"Missing data after handling: {missing_data_after_handling}")
+
+            # Debug: Log the first few rows of the dataset
+            logging.debug(f"Dataset after missing data handling:\n{data.head()}")
+
+        # Preprocess data for training
+        logging.info("Preprocessing data for training")
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
 
-        # Call ML functions
-        trained_model, evaluation_results, = train_model_with_fairness(
+        # Train the model
+        logging.info("Starting model training")
+        trained_model, evaluation_results = train_model_with_fairness(
             X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size
         )
 
         # Respond with results
         return jsonify({
             'message': 'Model trained successfully',
-            'evaluation': evaluation_results
+            'evaluation': evaluation_results,
+            'missing_data_before_handling': missing_data_before_handling,
+            'missing_data_after_handling': missing_data_after_handling if do_handle_miss_data else None
         })
 
     except Exception as e:
         logging.error(f"Error during training: {e}")
         return jsonify({'error': str(e)}), 500
-
-
 
 if __name__ == '__main__':
     # Disable reloader to avoid double logs

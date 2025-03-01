@@ -23,7 +23,16 @@ const Training = () => {
     const [selectedPerformanceMetrics, setSelectedPerformanceMetrics] = useState([]);
     const [splitRatio, setSplitRatio] = useState(20); // Default: Test 20%, Train 80%
 
-    const algorithms = ['Logistic Regression', 'Random Forest', 'Support Vector Machine', 'Neural Network'];
+
+    const regressionAlgorithms = ['Linear Regression', 'Random Forest Regression', 'Gradient Boosting Regression', 'Decision Tree Regression'];
+    const classificationAlgorithms = ['Logistic Regression', 'Support Vector Machine', 'Naive Bayes', 'Random Forest Classification'];
+    const algorithms =
+        problem_type === "regression"
+            ? regressionAlgorithms
+            : problem_type === "classification"
+                ? classificationAlgorithms
+                : [];
+
     const metrics = ['Demographic Parity', 'Equalized Odds', 'Disparate Impact'];
     const evaluationMetrics = ['Accuracy', 'Precision', 'Recall'];
 
@@ -66,6 +75,9 @@ const Training = () => {
             selectedPerformanceMetrics,
             splitRatio,
             trainSplitRatio: 100 - splitRatio,
+            doHandleMissData,
+            doBalanceData,
+            problem_type
         };
 
         try {
