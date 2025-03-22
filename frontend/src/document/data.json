@@ -1,0 +1,182 @@
+{
+    "projects": [
+        {
+            "id": 1,
+            "title": "Project 1",
+            "description": "Description of Project 1",
+            "image": "https://via.placeholder.com/150",
+            "link": "https://example.com/project1"
+        },
+        {
+            "id": 2,
+            "title": "Project 2",
+            "description": "Description of Project 2",
+            "image": "https://via.placeholder.com/150",
+            "link": "https://example.com/project2"
+        },
+        {
+            "id": 3,
+            "title": "Project 3",
+            "description": "Description of Project 3",
+            "image": "https://via.placeholder.com/150",
+            "link": "https://example.com/project3"
+        }
+    ],
+    "aboutMe": [
+        {
+            "id": 1,
+            "title": "Introduction",
+            "description": [
+                "Fairness metrics are critical tools for identifying, measuring, and reducing bias in AI systems by introducing a notion of fairness. They help ensure your models don’t disproportionately harm any group or random individual. Let’s break down their key benefits.",
+                "The Fairness Assessment Tool is designed to evaluate and improve fairness in machine learning models. It provides a structured pipeline for data processing, model training, and fairness analysis using established fairness metrics. The tool helps identify bias and suggests mitigation strategies to enhance model fairness. "
+            ],
+            "image": "https://via.placeholder.com/150"
+        }
+    ],
+    "education": [
+        {
+            "id": 2,
+            "title": "Master of Computer Science",
+            "uniLogo": "dpi_logo",
+            "description": "University of Milan",
+            "city": "Milan/Italy",
+            "subjects": [
+                "Artificial Intelligence",
+                "Machine learning",
+                "Information Retrieval",
+                "Business Information Systems",
+                "Data Mining",
+                "Geospatial Data Management"
+            ],
+            "date": "2021 - 2025"
+        },
+        {
+            "id": 1,
+            "title": "Bachelor of Information Technology",
+            "uniLogo": "unimi_logo",
+            "description": "University of Applied Science and Technology",
+            "city": "Tehran/Iran",
+            "subjects": [
+                "Mathematical Foundations of Computer Science",
+                "Data Structures",
+                "Object-Oriented Programming",
+                "Database Management Systems",
+                "Computer Networks",
+                "Advanced Programming",
+                "Operating System"
+            ],
+            "date": "2009 - 2015",
+            "background": "I hold a Master's degree in Computer Science from the University of Milan and a Bachelor's degree in Information Technology from the University of Applied Science and Technology in Tehran. "
+        }
+    ],
+    "skills": [
+        {
+            "title": "PHP",
+            "logo": "SiPhp",
+            "level": 70,
+            "description": "A popular general-purpose scripting language that is especially suited to web development. Fast, flexible and pragmatic, PHP powers everything from your blog to the most popular websites in the world."
+        },
+        {
+            "title": "Laravel",
+            "logo": "SiLaravel",
+            "level": 65,
+            "description": "A free, open-source PHP web framework, created by Taylor Otwell, and intended for the development of web applications following the model–view–controller architectural pattern."
+        },
+        {
+            "title": "MySQL",
+            "logo": "SiMysql",
+            "level": 65,
+            "description": "An open-source relational database management system (RDBMS) very popular for its speed, reliability, and ease of use. It is widely used for powering web applications and other software."
+        },
+        {
+            "title": "API",
+            "logo": "TbApi",
+            "level": 80,
+            "description": "An Application Programming Interface (API) is a set of rules and specifications that allows different software applications to communicate and interact with each other."
+        },
+        {
+            "title": "Jest",
+            "logo": "SiJest",
+            "level": 65,
+            "description": "A JavaScript testing framework designed to ensure code reliability. It's known for its ease of use, clear and concise syntax, and ability to write tests quickly."
+        },
+        {
+            "title": "JavaScript",
+            "logo": "SiJavascript",
+            "level": 80,
+            "description": "A high-level, interpreted programming language that is primarily used to build interactive and dynamic web pages. It's essential for front-end development and increasingly used on the server-side."
+        },
+        {
+            "title": "NodeJS",
+            "logo": "FaNodeJs",
+            "level": 80,
+            "description": "An open-source, back-end JavaScript runtime environment that executes JavaScript code outside a web browser. It allows developers to build fast and scalable server-side applications."
+        },
+        {
+            "title": "MongoDB",
+            "logo": "SiMongodb",
+            "level": 80,
+            "description": "A popular open-source, document-oriented NoSQL database. It's known for its flexibility, scalability, and high performance, making it suitable for applications that require dynamic schemas and large volumes of data."
+        },
+        {
+            "title": "ExpressJS",
+            "logo": "SiExpress",
+            "level": 75,
+            "description": "A fast, minimal, and flexible Node.js web application framework that provides a robust set of features for building web applications and APIs."
+        },
+        {
+            "title": "ReactJS",
+            "logo": "FaReact",
+            "level": 85,
+            "description": "A JavaScript library for building user interfaces, developed by Facebook. It's known for its component-based architecture, virtual DOM, and efficient rendering, making it popular for creating complex and interactive UIs."
+        },
+        {
+            "title": "Git",
+            "logo": "FaGithub",
+            "level": 85,
+            "description": "A distributed version control system that tracks changes to computer files and enables multiple developers to collaborate effectively on projects."
+        },
+        {
+            "title": "Docker",
+            "logo": "SiDocker",
+            "level": 45,
+            "description": "An open-source platform for building, shipping, and running applications in containers. Containers allow applications to run consistently across different environments, simplifying deployment and scaling."
+        },
+        {
+            "title": "Jenkins",
+            "logo": "SiJenkins",
+            "level": 45,
+            "description": "An open-source automation server that helps automate parts of the software development process, such as building, testing, and deploying software. It's widely used for continuous integration and continuous delivery (CI/CD)."
+        },
+        {
+            "title": "Jira",
+            "logo": "SiJira",
+            "level": 45,
+            "description": "A proprietary issue tracking and project management software developed by Atlassian. It helps teams plan, track, and release software, and provides a central platform for collaboration and communication."
+        },
+        {
+            "title": "WordPress",
+            "logo": "SiWordpress",
+            "level": 75,
+            "description": "A popular open-source content management system (CMS) used to create websites and blogs. It's known for its user-friendly interface, extensive plugin ecosystem, and flexibility."
+        },
+        {
+            "title": "HTML5",
+            "logo": "SiHtml5",
+            "level": 85,
+            "description": "The latest version of the HyperText Markup Language, used to structure and present content on the web. It includes new elements and features that enhance the capabilities of web pages."
+        },
+        {
+            "title": "CSS3",
+            "logo": "DiCss3",
+            "level": 75,
+            "description": "The latest version of Cascading Style Sheets, used to style the presentation of HTML elements on web pages. It includes new selectors, properties, and units that provide greater control over layout and design."
+        },
+        {
+            "title": "TailwindCSS",
+            "logo": "SiTailwindcss",
+            "level": 80,
+            "description": "A utility-first CSS framework that provides a collection of pre-built CSS classes for common styling needs. This allows for rapid development and consistent styling across projects."
+        }
+    ]
+}

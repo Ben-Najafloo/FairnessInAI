@@ -32,35 +32,11 @@ def preprocess_data(data, label_column, sensitive_column):
     """
     try:
         logger.info("Starting data preprocessing...")
-        # logger.debug(f"Columns in the dataset: {list(data.columns)}")
-        # logger.debug(
-        #     f"Target label: {label_column}, Sensitive attribute: {sensitive_column}")
 
         # Separate the features (X), label (y), and sensitive attribute (sensitive)
         X = data.drop([label_column, sensitive_column], axis=1)
         y = data[label_column]
         sensitive = data[sensitive_column]
-
-        # # Handle missing data for numeric columns
-        # numeric_columns = X.select_dtypes(include=['number']).columns
-        # if numeric_columns.empty:
-        #     logger.warning("No numeric columns found in the dataset.")
-        # else:
-        #     X[numeric_columns] = X[numeric_columns].fillna(
-        #         X[numeric_columns].mean())
-        #     logger.debug(
-        #         f"Filled missing values in numeric columns: {numeric_columns}")
-
-        # # Handle missing data for non-numeric columns and encode them
-        # non_numeric_columns = X.select_dtypes(exclude=['number']).columns
-        # if non_numeric_columns.empty:
-        #     logger.warning("No non-numeric columns found in the dataset.")
-        # else:
-        #     X[non_numeric_columns] = X[non_numeric_columns].fillna(
-        #         X[non_numeric_columns].mode().iloc[0]
-        #     )
-        #     logger.debug(
-        #         f"Filled missing values in non-numeric columns: {non_numeric_columns}")
 
          # Handle missing data for numeric columns in X //////////////////////////////////////////////////////////////////////////
         numeric_columns = X.select_dtypes(include=['number']).columns
@@ -92,31 +68,29 @@ def preprocess_data(data, label_column, sensitive_column):
 
 
 
-def train_model(X, y):
-    """
-    Train a logistic regression model on the given features and labels.
+# def train_model(X, y):
+#     """
+#     Train a logistic regression model on the given features and labels.
 
-    Parameters:
-        X (pd.DataFrame): Features
-        y (pd.Series): Target labels
+#     Parameters:
+#         X (pd.DataFrame): Features
+#         y (pd.Series): Target labels
 
-    Returns:
-        model: Trained logistic regression model
-    """
-    try:
-        logger.info("Starting model training...")
-        model = LogisticRegression()
-        model.fit(X, y)
-        logger.info("Model training completed successfully.")
-        logger.debug(f"Model coefficients: {model.coef_}")
-        return model
+#     Returns:
+#         model: Trained logistic regression model
+#     """
+#     try:
+#         logger.info("Starting model training...")
+#         model = LogisticRegression()
+#         model.fit(X, y)
+#         logger.info("Model training completed successfully.")
+#         logger.debug(f"Model coefficients: {model.coef_}")
+#         return model
 
-    except Exception as e:
-        logger.error(f"Error during model training: {e}")
-        raise
+#     except Exception as e:
+#         logger.error(f"Error during model training: {e}")
+#         raise
 
-
-import numpy as np
 
 def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size=0.2):
     global sensitive_label_mapping
@@ -160,7 +134,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     # Select model
     if algorithm == 'Logistic Regression':
         model = LogisticRegression()
-    elif algorithm == 'Random Forest':
+    elif algorithm == 'Random Forest Classification':
         model = RandomForestClassifier()
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")

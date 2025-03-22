@@ -8,17 +8,17 @@ const Progress = () => {
     const steps = ["Get Started", "Data Uploaded", "Target Label Selection", "Sensitive feature Selection", "Problem Type Selection", "Analysis", "Training", "Review", "Confirmation"];
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             <h1 className="text-white">Progress Steps:</h1>
             <ol className="space-y-2 text-sm">
                 {steps.map((step, index) => (
                     <li key={index}>
                         <div
-                            className={`p-2 border rounded-lg ${index + 1 === progress
+                            className={`p-2 border rounded ${index + 1 === progress
                                 ? "text-blue-700 bg-blue-100 border-blue-300"
                                 : index + 1 < progress
-                                    ? "text-green-700 bg-green-50 border-green-300"
-                                    : "text-gray-900 bg-gray-100 border-gray-300"
+                                    ? "text-green-400 border-green-400"
+                                    : "text-white border-white"
                                 }`}
                             role="alert"
                         >

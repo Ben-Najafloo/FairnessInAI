@@ -5,7 +5,9 @@ from scipy.stats import zscore
 import logging
 from flask_cors import CORS
 from sklearn.impute import SimpleImputer
-from ml.ml_functions import preprocess_data, train_model, train_model_with_fairness
+from sklearn.preprocessing import OneHotEncoder
+# from imblearn.over_sampling import SMOTE
+from ml.ml_functions import preprocess_data, train_model_with_fairness
 
 
 # Configure logging
@@ -13,16 +15,15 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler()],
-    force=True  # Ensure custom logging overrides Flask's default
+    force=True  
 )
-logging.getLogger('werkzeug').setLevel(logging.ERROR)  # Suppress Werkzeug logs
+logging.getLogger('werkzeug').setLevel(logging.ERROR)  
 logging.info("App is starting...")
 
 app = Flask(__name__)
 CORS(app)
 
 uploaded_data = {}
-
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -45,7 +46,6 @@ def upload_file():
         # Read the dataset
         data = pd.read_csv(file)
 
-
         # Identify and drop a unique ID column
         dropped_column = None
         for col in data.columns:
@@ -53,25 +53,14 @@ def upload_file():
                 dropped_column = col
                 data = data.drop(columns=[col])
                 logging.info(f"Dropped ID column: {col}")
-                break  # Remove only one unique ID column
-
-        # Log missing data before preprocessing//////////////////////////////////////////////////////////////
-        # missing_data_before = get_missing_data(data)
-        # logging.info(f"Missing data before preprocessing: {missing_data_before}")
-
-        # # Handle missing values in the entire dataset
-        # logging.info("Handling missing data in the entire dataset.")
-        # data = handle_missing_data(data, strategy="mode")  # Use "mode" for categorical columns like 'sport' and 'decision'
-
-        # # Log missing data after handling
-        # missing_data_after_handling = get_missing_data(data)
-        # logging.info(f"Missing data after handling: {missing_data_after_handling}")
+                break  
         
         # Get label and sensitive columns
         label_column = request.form.get('label_column')
         sensitive_column = request.form.get('sensitive_column')
         sensitive_column2 = request.form.get('sensitive_column2')
         problem_type = request.form.get('problem_type')
+        
 
         if label_column not in data.columns or sensitive_column not in data.columns:
             logging.warning(f"Label column '{label_column}' or sensitive column '{sensitive_column}' not found.")
@@ -89,10 +78,6 @@ def upload_file():
         logging.info("Preprocessing completed successfully.")
         # logging.debug(f"Feature data (X) shape: {X.shape}")
 
-
-        # Log missing data after preprocessing///////////////////////////////////////////
-        # missing_data_after = get_missing_data(data)
-        # logging.info(f"Missing data after preprocessing: {missing_data_after}")
         # Calculate missing data percentages
         missing_data = get_missing_data(data)
         logging.info(f"Missing data before handling: {missing_data}")
@@ -102,7 +87,6 @@ def upload_file():
             'shape': list(data.shape),
             'columns': list(data.columns),
             'missing_data': get_missing_data(data),
-            # 'missing_data_after': missing_data_after,
             'data_types': get_data_types(data),
             'statistics': get_statistics(data),
             'outliers': detect_outliers(data),
@@ -130,6 +114,7 @@ def upload_file():
         uploaded_data['data'] = data
         uploaded_data['label_column'] = label_column
         uploaded_data['sensitive_column'] = sensitive_column
+        uploaded_data['problem_type'] = problem_type
         logging.info("Data and metadata stored in global variable.")
 
         return jsonify(response)
@@ -200,38 +185,86 @@ def handle_missing_data(df, strategy="mean"):
 def train_model():
     global uploaded_data
     try:
-        # Retrieve data and columns from global storage
+        # Ensure data is available
         if not uploaded_data:
             raise ValueError("No data found. Please upload a dataset first.")
 
+        # Retrieve data and columns from global storage
         data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
+        problem_type = uploaded_data.get('problem_type', None)  
+
+        if problem_type is None:
+            raise ValueError("Problem type is not defined. Please specify the problem type during upload.")
 
         # Extract user configurations
         config = request.json
         algorithm = config['selectedAlgorithms'][0]
         fairness_metric = config['selectedFairnessMetrics'][0]
-        performance_metric = config['selectedPerformanceMetrics'][0]
+        performance_metric = 'Accuracy'
         test_size = config['splitRatio'] / 100
-        do_handle_miss_data = config.get('doHandleMissData', False)
+        do_balance_data = config.get('doBalanceData', False)
         strategy = config.get('strategy', 'mean')  # Default strategy is 'mean'
 
-        # Log missing data before handling
-        missing_data_before_handling = get_missing_data(data)
-        logging.info(f"Missing data before handling: {missing_data_before_handling}")
+        logging.info(f"Training with {algorithm}, Fairness: {fairness_metric}, Metric: {performance_metric}, Test size: {test_size}")
+        logging.info(f"Do balance data: {do_balance_data}, Problem Type: {problem_type}")
 
         # Handle missing data if requested
-        if do_handle_miss_data:
-            logging.info(f"Handling missing data with strategy: {strategy}")
-            data = handle_missing_data(data, strategy=strategy)  # Reassign the modified dataset
+        logging.info(f"Handling missing data with strategy: {strategy}")
+        data = handle_missing_data(data, strategy=strategy)
+        # Log missing data after handling
+        missing_data_after_handling = get_missing_data(data)
+        logging.info(f"Missing data after handling: {missing_data_after_handling}")
 
-            # Log missing data after handling
-            missing_data_after_handling = get_missing_data(data)
-            logging.info(f"Missing data after handling: {missing_data_after_handling}")
+        # Log class distribution before balancing
+        class_distribution_before_balancing = get_class_distribution(data, label_column)
+        logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
 
-            # Debug: Log the first few rows of the dataset
-            logging.debug(f"Dataset after missing data handling:\n{data.head()}")
+        # Balance class distribution if requested
+        # if do_balance_data and problem_type == "classification":
+        #     logging.info("Balancing class distribution using SMOTE")
+
+        #     # Separate features and labels
+        #     X = data.drop([label_column, sensitive_column], axis=1)
+        #     y = data[label_column]
+
+        #     # Separate numeric and categorical columns
+        #     numeric_columns = X.select_dtypes(include=['number']).columns
+        #     categorical_columns = X.select_dtypes(exclude=['number']).columns
+
+        #     # Encode categorical columns using OneHotEncoder
+        #     if len(categorical_columns) > 0:
+        #         from sklearn.preprocessing import OneHotEncoder
+        #         encoder = OneHotEncoder(sparse_output=False)  # Use sparse_output instead of sparse
+        #         X_encoded = pd.DataFrame(encoder.fit_transform(X[categorical_columns]), columns=encoder.get_feature_names_out(categorical_columns))
+        #         X_numeric = X[numeric_columns].reset_index(drop=True)  # Reset index for concatenation
+        #         X = pd.concat([X_numeric, X_encoded], axis=1)
+        #     else:
+        #         X = X.reset_index(drop=True)  # Ensure index alignment
+
+        #     # Apply SMOTE to numeric data
+        #     smote = SMOTE()
+        #     X_resampled, y_resampled = smote.fit_resample(X, y)
+
+        #     # Recombine categorical columns (if any)
+        #     if len(categorical_columns) > 0:
+        #         X_resampled_categorical = encoder.inverse_transform(X_resampled[:, -len(encoder.categories_):])
+        #         X_resampled_categorical_df = pd.DataFrame(X_resampled_categorical, columns=categorical_columns)
+        #         X_resampled_numeric_df = pd.DataFrame(X_resampled[:, :len(numeric_columns)], columns=numeric_columns)
+        #         balanced_data = pd.concat([X_resampled_numeric_df, X_resampled_categorical_df, y_resampled], axis=1)
+        #     else:
+        #         balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=X.columns), y_resampled], axis=1)
+
+        #     # Preserve sensitive column values
+        #     balanced_data[sensitive_column] = data[sensitive_column].iloc[X_resampled_numeric_df.index].values
+
+        #     # Replace the original dataset with the balanced one
+        #     data = balanced_data
+
+        #     # Log class distribution after balancing
+        #     class_distribution_after_balancing = get_class_distribution(data, label_column)
+        #     logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
 
         # Preprocess data for training
         logging.info("Preprocessing data for training")
@@ -247,8 +280,8 @@ def train_model():
         return jsonify({
             'message': 'Model trained successfully',
             'evaluation': evaluation_results,
-            'missing_data_before_handling': missing_data_before_handling,
-            'missing_data_after_handling': missing_data_after_handling if do_handle_miss_data else None
+            'class_distribution_before_balancing': class_distribution_before_balancing,
+            # 'class_distribution_after_balancing': class_distribution_after_balancing if do_balance_data else None
         })
 
     except Exception as e:
@@ -258,3 +291,12 @@ def train_model():
 if __name__ == '__main__':
     # Disable reloader to avoid double logs
     app.run(debug=True, use_reloader=False)
+
+
+
+
+
+
+
+
+    

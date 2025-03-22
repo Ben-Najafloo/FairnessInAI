@@ -300,7 +300,7 @@ const Upload = () => {
                                                         </svg>
                                                     </button>
 
-                                                    <span className='mx-2'>Items {targetCurrentPage} of {totalPages}</span>
+                                                    <span className='mx-2'>Features {targetCurrentPage} of {totalPages}</span>
 
                                                     <button
                                                         onClick={() => setTargetCurrentPage((prev) => Math.min(prev + 1, totalPages))}
@@ -310,7 +310,7 @@ const Upload = () => {
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
                                                     </button>
-                                                    <span>Number of labels: {columns.length}</span>
+                                                    <span>Total: {columns.length}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -363,7 +363,7 @@ const Upload = () => {
                                         <FaAmericanSignLanguageInterpreting class="w-9 h-9 absolute top-2 right-9" />
                                         Now select the label as
                                         <span className='italic font-bold text-lg'> the Sensitive features</span>
-                                        <br /><span className='text-green-500'>*** You can chose one or two options</span>
+                                        <br /><span className='text-green-500'>*** You can choose one or two options</span>
                                     </p>
                                     <div className=" mx-auto mt-3">
                                         <div
@@ -399,7 +399,7 @@ const Upload = () => {
                                                         </svg>
                                                     </button>
 
-                                                    <span className='mx-2'>Items {sensitiveCurrentPage} of {totalPages}</span>
+                                                    <span className='mx-2'>Features {sensitiveCurrentPage} of {totalPages}</span>
 
                                                     <button
                                                         onClick={() => setSensitiveCurrentPage((prev) => Math.min(prev + 1, totalPages))}
@@ -409,7 +409,7 @@ const Upload = () => {
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
                                                     </button>
-                                                    <span>Number of labels: {columns.length}</span>
+                                                    <span>Total: {columns.length}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -460,7 +460,7 @@ const Upload = () => {
                                         value="regression"
                                         checked={problemTypeColumn === "regression"}
                                         class="hidden peer" />
-                                    <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                    <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-black">
                                         <div class="block">
                                             <div className='flex'>
                                                 <img src={regImg} class="mb-2 w-20 h-20" />
@@ -480,7 +480,7 @@ const Upload = () => {
                                         value="classification"
                                         checked={problemTypeColumn === "classification"}
                                         class="hidden peer" />
-                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-black">
                                         <div class="block">
                                             <div className='flex'>
                                                 <img src={claImg} class="mb-2 w-20 h-20" />

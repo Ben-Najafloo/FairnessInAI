@@ -3,6 +3,11 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import Slider from '@mui/material/Slider';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { BsCaretDownFill } from "react-icons/bs";
+
+import manualPNG from '../img/manual.png';
+import autoPNG from '../img/auto2.png';
 
 const Training = () => {
 
@@ -16,11 +21,13 @@ const Training = () => {
 
     const { setProgress } = useContext(ProgressContext);
 
-    const [showConfigTable, setShowConfigTable] = useState(false);
+    const [showConfigTable, setShowConfigTable] = useState(true);
+    const [showConfigTableManual, setShowConfigTableManual] = useState(false);
+
+    const [dataTypeIsExpanded, setDataTypeIsExpanded] = useState(false);
 
     const [selectedAlgorithms, setSelectedAlgorithms] = useState([]);
     const [selectedFairnessMetrics, setSelectedFairnessMetrics] = useState([]);
-    const [selectedPerformanceMetrics, setSelectedPerformanceMetrics] = useState([]);
     const [splitRatio, setSplitRatio] = useState(20); // Default: Test 20%, Train 80%
 
 
@@ -34,11 +41,23 @@ const Training = () => {
                 : [];
 
     const metrics = ['Demographic Parity', 'Equalized Odds', 'Disparate Impact'];
-    const evaluationMetrics = ['Accuracy', 'Precision', 'Recall'];
 
-    const configTable = () => {
-        setShowConfigTable(true);
+
+    const handleManualConfig = () => {
+        setShowConfigTable(false);
+        setShowConfigTableManual(true);
+
     }
+
+    const closeManualConfig = () => {
+        setShowConfigTable(true);
+        setShowConfigTableManual(false);
+    }
+
+    // show the details    
+    const dataTypeView = () => {
+        setDataTypeIsExpanded(!dataTypeIsExpanded);
+    };
 
     const handleAlgorithmChange = (event) => {
         const value = event.target.value;
@@ -54,25 +73,47 @@ const Training = () => {
         );
     };
 
-    const handlePerformanceMetricChange = (event) => {
-        const value = event.target.value;
-        setSelectedPerformanceMetrics((prev) =>
-            prev.includes(value) ? prev.filter((metric) => metric !== value) : [...prev, value]
-        );
-    };
 
     const handleSplitChange = (event, value) => {
         setSplitRatio(value); // Update the split ratio
     };
 
     // Form submission handler
-    const handleSubmit = async (event) => {
+    const handleManualSubmit = async (event) => {
         event.preventDefault();
 
         const formData = {
             selectedAlgorithms,
             selectedFairnessMetrics,
-            selectedPerformanceMetrics,
+            splitRatio,
+            trainSplitRatio: 100 - splitRatio,
+            doHandleMissData,
+            doBalanceData,
+            problem_type
+        };
+        console.log(formData);
+        try {
+            // Send POST request to the backend
+            const response = await axios.post("http://localhost:5000/train", formData);
+
+            const result = response.data;
+            console.log('Training Result:', result);
+            setProgress(8);
+            navigate('/analys', { state: { result } });
+        } catch (error) {
+            console.error('Error during training:', error);
+        }
+    };
+
+    const handleAutoSubmit = async (event) => {
+        event.preventDefault();
+
+        const defaultAlgorithm = problem_type === "regression" ? "Linear Regression" : problem_type === "classification" ? "Logistic Regression" : null;
+        const defaultMetric = 'Demographic Parity';
+
+        const formData = {
+            selectedAlgorithms: defaultAlgorithm ? [defaultAlgorithm] : [], // Wrap in array
+            selectedFairnessMetrics: [defaultMetric], // Wrap in array
             splitRatio,
             trainSplitRatio: 100 - splitRatio,
             doHandleMissData,
@@ -80,19 +121,16 @@ const Training = () => {
             problem_type
         };
 
-        try {
-            // Send POST request to the backend
-            const response = await axios.post("http://localhost:5000/train", formData);
+        console.log(formData);
 
-            // Axios automatically parses JSON responses
+        try {
+            const response = await axios.post("http://localhost:5000/train", formData);
             const result = response.data;
             console.log('Training Result:', result);
             setProgress(8);
-            // Navigate to the results page and pass the result as state
             navigate('/analys', { state: { result } });
         } catch (error) {
             console.error('Error during training:', error);
-            // Show error notification or handle it accordingly
         }
     };
 
@@ -103,38 +141,96 @@ const Training = () => {
                 <div className="md:pl-5 w-full">
                     <div className="bg-gray-800 py-4 px-9 rounded-lg h-[550px] md:max-h-[550px] overflow-auto">
                         <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Final Configuration</h2>
-                        <form className="w-full pl-4">
 
-                            <p className='text-white leading-8'>According to the problem type and pre assessment of the fairness, it is suggested to use
-                                <br />
-                                {problem_type && (<span className='font-bold italic mr-2 text-green-500'>
-                                    {problem_type.toUpperCase()}
-                                </span>)}
-                                algorithms for training.
-                                <br /> Also the ratio for splitting the dataset will be <span className='font-bold italic'> Testing: 20% and Training: 80%.</span>
-                            </p>
-                            {(doBalanceData || doHandleMissData) && (
-                                <span className='text-white leading-8'>Before processing of fairness assessment as there are:</span>
-                            )}
-                            {doHandleMissData && (
-                                <p className='text-white leading-8'>
-                                    <ul>
-                                        <li className='list-disc list-inside pl-3'> Missing value in your dataset, it will be handeled according to the type of missed values.</li>
-                                    </ul>
-                                </p>
-                            )}
-                            {doBalanceData && (
-                                <p className='text-white leading-8'>
-                                    <ul>
-                                        <li className='list-disc list-inside pl-3'> Imbalance class distribution in your dataset, it will be balanced (sintatic data points will be generated and added).</li>
-                                    </ul>
-                                </p>
-                            )}
+                        {showConfigTable && (
+                            <div className="w-full pl-4">
+                                <h4 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Choose the Configuration Way:</h4>
+                                <ul class="grid w-full gap-6 md:grid-cols-2">
+                                    {/* automatically Configuration */}
+                                    <li>
+                                        <label onClick={handleAutoSubmit} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
 
-                            <p className='text-white leading-8 mt-7'>For manual configuration click <a onClick={configTable} className='text-blue-500 cursor-pointer'>here</a></p>
+                                            <div class="block">
+                                                <div className='flex'>
+                                                    <img src={autoPNG} class="mb-2 w-20 h-20" alt="alt" />
+                                                    <div class="w-full ml-4">
+                                                        <div class="text-xl mb-3 font-semibold">Auto</div>
+                                                        <p class="w-72 text-sm">All configuration options align with the selected problem type.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
 
-                            {showConfigTable && (
-                                <div className='pl-4'>
+                                        {/* show details of auto confif button */}
+                                        <button onClick={dataTypeView} class=" hover:font-bold px-5 inline-flex items-center text-white mt-4">
+                                            {dataTypeIsExpanded ? (
+                                                <>
+                                                    <span>Hide Details</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>View Details</span>
+                                                </>
+                                            )}
+                                            <motion.span animate={{ rotate: dataTypeIsExpanded ? 180 : 0 }}>
+                                                <BsCaretDownFill className="ml-3" />
+                                            </motion.span>
+                                        </button>
+
+                                    </li>
+                                    <li>
+                                        <label onClick={handleManualConfig} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
+                                            <div class="block">
+                                                <div className='flex'>
+                                                    <img src={manualPNG} class="mb-2 w-20 h-20" alt="alt" />
+                                                    <div class="w-full ml-4">
+                                                        <div class="text-xl mb-3 font-semibold">Manual</div>
+                                                        <p class="w-72 text-sm">All configuration options align with the selected problem type.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </li>
+                                </ul>
+                                {/* show details of auto Configuration */}
+                                {dataTypeIsExpanded && (
+                                    <motion.div>
+                                        <p className='text-white leading-8 mt-4'>According to the problem type and pre assessment of the fairness, it is suggested to use
+                                            <br />
+                                            {problem_type && (<span className='font-bold italic mr-2 text-green-500'>
+                                                {problem_type.toUpperCase()}
+                                            </span>)}
+                                            algorithms for training.
+                                            <br /> Also the ratio for splitting the dataset will be <br /> <span className='font-bold italic'> Testing: 20% and Training: 80%.</span>
+                                        </p>
+                                        {(doBalanceData || doHandleMissData) && (
+                                            <span className='text-white leading-8'>Before processing of fairness assessment as there are:</span>
+                                        )}
+                                        {doHandleMissData && (
+                                            <p className='text-white leading-8'>
+                                                <ul>
+                                                    <li className='list-disc list-inside pl-3'> Missing value in your dataset, it will be handeled according to the type of the missed values.</li>
+                                                </ul>
+                                            </p>
+                                        )}
+                                        {doBalanceData && (
+                                            <p className='text-white leading-8'>
+                                                <ul>
+                                                    <li className='list-disc list-inside pl-3'> Imbalance class distribution in your dataset, it will be balanced (sintatic data points will be generated and added).</li>
+                                                </ul>
+                                            </p>
+                                        )}
+                                    </motion.div>
+                                )}
+
+
+                            </div>
+                        )}
+
+                        {/* manually Configuration */}
+                        <div>
+                            {showConfigTableManual && (
+                                <div className='pl-4 mt-16'>
                                     <div className="flex-wrap -mx-3 my-6">
 
                                         <h3 className="mb-1 text-white">Algorithm for training: </h3>
@@ -178,26 +274,7 @@ const Training = () => {
                                         </ul>
 
                                     </div>
-                                    <div className="flex-wrap -mx-3 mb-6">
 
-                                        <h3 className="mb-1 text-white">Performance evaluation metric:</h3>
-                                        <ul class="grid w-2/3 gap-2 md:grid-cols-3">
-                                            {evaluationMetrics.map((evaluationMetric) => (
-                                                <li>
-                                                    <input type="checkbox" id={`${evaluationMetric}-checkbox`} value={evaluationMetric} checked={selectedPerformanceMetrics.includes(evaluationMetric)} onChange={handlePerformanceMetricChange} class="hidden peer" />
-                                                    <label for={`${evaluationMetric}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
-                                                        <div class="block">
-                                                            <div className='flex'>
-                                                                <div class="w-full">
-                                                                    <div class="text-base mb-3 font-semibold">{evaluationMetric}</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
                                     <div className="flex-wrap -mx-3">
                                         <h3 className="mb-1 text-white">Set the ratio for splitting the dataset: </h3>
                                         <div className='flex'>
@@ -222,19 +299,18 @@ const Training = () => {
 
                                         </div>
                                     </div>
+
+                                    <div className="flex items-center space-x-4 mt-7">
+                                        <button onClick={closeManualConfig} className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                                            Back
+                                        </button>
+                                        <button onClick={handleManualSubmit} className="text-white bg-blue-500 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                                            Start Training
+                                        </button>
+                                    </div>
                                 </div>
                             )}
-
-
-                            <div className="flex items-center space-x-4 mt-5">
-                                <Link to="/upload" className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-                                    Load Another Dataset
-                                </Link>
-                                <button onClick={handleSubmit} className="text-white bg-blue-500 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                                    Start Training
-                                </button>
-                            </div>
-                        </form>
+                        </div>
 
                     </div>
 
