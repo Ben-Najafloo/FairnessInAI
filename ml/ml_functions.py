@@ -7,7 +7,6 @@ from fairlearn.metrics import demographic_parity_difference ,equalized_odds_diff
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import LabelEncoder
 
-
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -18,18 +17,7 @@ logger = logging.getLogger(__name__)
 non_numeric_columns = {}
 def preprocess_data(data, label_column, sensitive_column):
     global non_numeric_columns
-    """
-    Preprocess the input data by separating features, labels, and sensitive attributes.
-    Handles missing values for numeric and non-numeric columns and encodes categorical features.
-
-    Parameters:
-        data (pd.DataFrame): Input dataset
-        label_column (str): Column name for the target label
-        sensitive_column (str): Column name for the sensitive attribute
-
-    Returns:
-        tuple: Features (X), Labels (y), and Sensitive attributes (sensitive)
-    """
+    
     try:
         logger.info("Starting data preprocessing...")
 
@@ -65,31 +53,6 @@ def preprocess_data(data, label_column, sensitive_column):
     except Exception as e:
         logger.error(f"Error during preprocessing: {e}")
         raise
-
-
-
-# def train_model(X, y):
-#     """
-#     Train a logistic regression model on the given features and labels.
-
-#     Parameters:
-#         X (pd.DataFrame): Features
-#         y (pd.Series): Target labels
-
-#     Returns:
-#         model: Trained logistic regression model
-#     """
-#     try:
-#         logger.info("Starting model training...")
-#         model = LogisticRegression()
-#         model.fit(X, y)
-#         logger.info("Model training completed successfully.")
-#         logger.debug(f"Model coefficients: {model.coef_}")
-#         return model
-
-#     except Exception as e:
-#         logger.error(f"Error during model training: {e}")
-#         raise
 
 
 def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size=0.2):

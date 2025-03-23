@@ -6,8 +6,8 @@ import logging
 from flask_cors import CORS
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
-# from imblearn.over_sampling import SMOTE
-from ml.ml_functions import preprocess_data, train_model_with_fairness
+# from ml.ml_functions import preprocess_data, train_model_with_fairness
+from ml.tpot_ml import preprocess_data, train_model_with_fairness
 
 
 # Configure logging
@@ -80,7 +80,7 @@ def upload_file():
 
         # Calculate missing data percentages
         missing_data = get_missing_data(data)
-        logging.info(f"Missing data before handling: {missing_data}")
+        # logging.info(f"Missing data before handling: {missing_data}")
 
         # Generate Dataset Analysis
         dataset_summary = {
@@ -93,7 +93,7 @@ def upload_file():
             'class_distribution': get_class_distribution(data, label_column),
             'sensitive_column_distribution': get_sensitive_column_distribution(data, sensitive_column)
         }
-        logging.error(f"Missing data before handling: {get_missing_data(data)}")
+        # logging.error(f"Missing data before handling: {get_missing_data(data)}")
         
 
         response = {
@@ -200,15 +200,16 @@ def train_model():
 
         # Extract user configurations
         config = request.json
-        algorithm = config['selectedAlgorithms'][0]
-        fairness_metric = config['selectedFairnessMetrics'][0]
-        performance_metric = 'Accuracy'
-        test_size = config['splitRatio'] / 100
+        algorithm = config.get('selectedAlgorithms', ['Linear Regression'])[0]
+        fairness_metric = config.get('selectedFairnessMetrics', ['Demographic Parity'])[0]
+        performance_metric = config.get('performanceMetric', 'Accuracy')
+        test_size = config.get('splitRatio', 20) / 100
         do_balance_data = config.get('doBalanceData', False)
-        strategy = config.get('strategy', 'mean')  # Default strategy is 'mean'
-
-        logging.info(f"Training with {algorithm}, Fairness: {fairness_metric}, Metric: {performance_metric}, Test size: {test_size}")
-        logging.info(f"Do balance data: {do_balance_data}, Problem Type: {problem_type}")
+        strategy = config.get('strategy', 'mean')
+        
+        # TPOT configuration
+        tpot_generations = config.get('tpotGenerations', 10)
+        tpot_population_size = config.get('tpotPopulationSize', 30)
 
         # Handle missing data if requested
         logging.info(f"Handling missing data with strategy: {strategy}")
@@ -221,73 +222,47 @@ def train_model():
         class_distribution_before_balancing = get_class_distribution(data, label_column)
         logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
 
-        # Balance class distribution if requested
-        # if do_balance_data and problem_type == "classification":
-        #     logging.info("Balancing class distribution using SMOTE")
-
-        #     # Separate features and labels
-        #     X = data.drop([label_column, sensitive_column], axis=1)
-        #     y = data[label_column]
-
-        #     # Separate numeric and categorical columns
-        #     numeric_columns = X.select_dtypes(include=['number']).columns
-        #     categorical_columns = X.select_dtypes(exclude=['number']).columns
-
-        #     # Encode categorical columns using OneHotEncoder
-        #     if len(categorical_columns) > 0:
-        #         from sklearn.preprocessing import OneHotEncoder
-        #         encoder = OneHotEncoder(sparse_output=False)  # Use sparse_output instead of sparse
-        #         X_encoded = pd.DataFrame(encoder.fit_transform(X[categorical_columns]), columns=encoder.get_feature_names_out(categorical_columns))
-        #         X_numeric = X[numeric_columns].reset_index(drop=True)  # Reset index for concatenation
-        #         X = pd.concat([X_numeric, X_encoded], axis=1)
-        #     else:
-        #         X = X.reset_index(drop=True)  # Ensure index alignment
-
-        #     # Apply SMOTE to numeric data
-        #     smote = SMOTE()
-        #     X_resampled, y_resampled = smote.fit_resample(X, y)
-
-        #     # Recombine categorical columns (if any)
-        #     if len(categorical_columns) > 0:
-        #         X_resampled_categorical = encoder.inverse_transform(X_resampled[:, -len(encoder.categories_):])
-        #         X_resampled_categorical_df = pd.DataFrame(X_resampled_categorical, columns=categorical_columns)
-        #         X_resampled_numeric_df = pd.DataFrame(X_resampled[:, :len(numeric_columns)], columns=numeric_columns)
-        #         balanced_data = pd.concat([X_resampled_numeric_df, X_resampled_categorical_df, y_resampled], axis=1)
-        #     else:
-        #         balanced_data = pd.concat([pd.DataFrame(X_resampled, columns=X.columns), y_resampled], axis=1)
-
-        #     # Preserve sensitive column values
-        #     balanced_data[sensitive_column] = data[sensitive_column].iloc[X_resampled_numeric_df.index].values
-
-        #     # Replace the original dataset with the balanced one
-        #     data = balanced_data
-
-        #     # Log class distribution after balancing
-        #     class_distribution_after_balancing = get_class_distribution(data, label_column)
-        #     logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
-
         # Preprocess data for training
         logging.info("Preprocessing data for training")
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
 
         # Train the model
-        logging.info("Starting model training")
-        trained_model, evaluation_results = train_model_with_fairness(
-            X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size
+        logging.info(f"Starting model training with {algorithm} for {problem_type} problem")
+        model, evaluation_results = train_model_with_fairness(
+            X, y, sensitive, 
+            algorithm=algorithm,
+            fairness_metric=fairness_metric, 
+            performance_metric=performance_metric,
+            test_size=test_size,
+            tpot_generations=tpot_generations,
+            tpot_population_size=tpot_population_size,
+            problem_type=problem_type
         )
 
         # Respond with results
-        return jsonify({
+        response_data = {
             'message': 'Model trained successfully',
             'evaluation': evaluation_results,
             'class_distribution_before_balancing': class_distribution_before_balancing,
-            # 'class_distribution_after_balancing': class_distribution_after_balancing if do_balance_data else None
-        })
+
+        }
+        
+        # Add problem-specific metrics to response
+        if problem_type.lower() == 'regression':
+            response_data['regression_metrics'] = {
+                'MAE': evaluation_results.get('mae'),
+                'MSE': evaluation_results.get('mse'),
+                'RMSE': evaluation_results.get('rmse'),
+                'R2': evaluation_results.get('r2')
+            }
+            
+        return jsonify(response_data)
 
     except Exception as e:
-        logging.error(f"Error during training: {e}")
+        logging.error(f"Error during training: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
-
+    
+    
 if __name__ == '__main__':
     # Disable reloader to avoid double logs
     app.run(debug=True, use_reloader=False)

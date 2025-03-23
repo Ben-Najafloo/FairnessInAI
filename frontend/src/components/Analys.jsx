@@ -4,7 +4,7 @@ import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
-import { IoMdHome } from "react-icons/io";
+// import { IoMdHome } from "react-icons/io";
 
 
 // download
@@ -75,7 +75,6 @@ const Analys = () => {
     };
 
 
-
     if (!result) {
         return <p>No results available. Please start training.</p>;
     }
@@ -86,12 +85,17 @@ const Analys = () => {
         fairness_score,
         performance_score,
         fairness_metric,
-        performance_metric,
+        // performance_metric,
         non_numeric_columns,
         algorithm,
         sensitive_label_mapping,
-        sensitive_test
+        sensitive_test,
+        fairness_reason,
+        precision,
+        recall
     } = evaluation || {};
+
+
 
     return (
         <div className='pl-5 pr-5 relative '>
@@ -186,12 +190,27 @@ const Analys = () => {
 
                         <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Accuracy Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</span>
+                            </div>
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Precision Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{precision !== undefined ? precision : 'N/A'}</span>
+                            </div>
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Recall Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{recall !== undefined ? recall : 'N/A'}</span>
+                            </div>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Score:</span>
                                 <span className="text-sm text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score : 'N/A'}</span>
                             </div>
+
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Performance Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score : 'N/A'}</span>
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Features:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{fairness_reason !== undefined ? fairness_reason : 'N/A'}</span>
                             </div>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
@@ -199,16 +218,16 @@ const Analys = () => {
                                 <span className="text-base text-gray-900 dark:text-white">Fairness Metric:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{fairness_metric !== undefined ? fairness_metric : 'N/A'}</span>
                             </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                            {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">Performance Metric:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white"> {performance_metric !== undefined ? performance_metric : 'N/A'}</span>
-                            </div>
+                            </div> */}
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">Algorithm:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{algorithm}</span>
                             </div>
                         </div>
-                        <div className="grid gap-4 grid-cols-1 mt-2">
+                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">One-hot encoded columns:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{non_numeric_columns && non_numeric_columns.length > 0 ? non_numeric_columns.join(' , ') : 'N/A'} </span>

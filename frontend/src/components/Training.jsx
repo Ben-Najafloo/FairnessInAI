@@ -108,20 +108,22 @@ const Training = () => {
     const handleAutoSubmit = async (event) => {
         event.preventDefault();
 
-        const defaultAlgorithm = problem_type === "regression" ? "Linear Regression" : problem_type === "classification" ? "Logistic Regression" : null;
+        const defaultAlgorithm = "TPOT";
         const defaultMetric = 'Demographic Parity';
 
         const formData = {
-            selectedAlgorithms: defaultAlgorithm ? [defaultAlgorithm] : [], // Wrap in array
-            selectedFairnessMetrics: [defaultMetric], // Wrap in array
+            selectedAlgorithms: [defaultAlgorithm],
+            selectedFairnessMetrics: [defaultMetric],
             splitRatio,
             trainSplitRatio: 100 - splitRatio,
             doHandleMissData,
             doBalanceData,
-            problem_type
+            problem_type,
+            tpotGenerations: 5,  // Default values for TPOT
+            tpotPopulationSize: 15
         };
 
-        console.log(formData);
+        console.log("Auto-selected TPOT", formData);
 
         try {
             const response = await axios.post("http://localhost:5000/train", formData);

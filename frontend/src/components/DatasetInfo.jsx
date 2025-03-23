@@ -590,8 +590,18 @@ const DatasetInfo = () => {
                                 <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <FaScissors class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Dropped Columns (To focus on meaningful features, we've removed the ID column, which only contains sequential identifiers and does not aid in prediction):<br /><br />
-                                            <span className="font-bold">  {dropped_column} </span>
+                                        <div class="w-full text-base ">Dropped Columns: <br />
+                                            {dropped_column ? (
+                                                <span className="font-bold">
+                                                    (To focus on meaningful features, we've removed the ID column, which only contains sequential identifiers and does not aid in prediction):<br /><br />
+                                                    {dropped_column}
+                                                </span>
+                                            ) : (
+                                                <span className="font-bold">
+                                                    No dropped column
+                                                </span>
+                                            )}
+
                                         </div>
                                     </div>
                                 </label>
