@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from fairlearn.metrics import demographic_parity_difference, equalized_odds_difference
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import LabelEncoder
-
+from datetime import datetime
 from tpot import TPOTRegressor, TPOTClassifier
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.feature_selection import VarianceThreshold
@@ -60,8 +60,6 @@ def preprocess_data(data, label_column, sensitive_column):
     except Exception as e:
         logger.error(f"Error during preprocessing: {e}")
         raise
-
-from datetime import datetime  # Add this import at the top of your file
 
 def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size, 
                              tpot_generations, tpot_population_size, problem_type='classification'):
