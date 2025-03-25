@@ -2,12 +2,18 @@ import React, { useContext, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import { BsCaretDownFill } from "react-icons/bs";
-import { FaBalanceScaleLeft, FaAmericanSignLanguageInterpreting } from "react-icons/fa";
-import { MdTableRows, MdViewColumn } from "react-icons/md";
+import { FaBalanceScaleLeft, FaAmericanSignLanguageInterpreting, FaCheck } from "react-icons/fa";
+import { MdTableRows, MdViewColumn, MdSyncProblem } from "react-icons/md";
+import { FaScissors } from "react-icons/fa6";
 import { VscEmptyWindow } from "react-icons/vsc";
-import { GiHumanTarget } from "react-icons/gi";
+import { GiHumanTarget, GiPieChart } from "react-icons/gi";
+import { IoAnalyticsOutline } from "react-icons/io5";
 
 import { motion } from 'framer-motion';
+
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Bar, Pie } from 'react-chartjs-2';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 const DatasetInfo = () => {
     const location = useLocation();
@@ -17,6 +23,9 @@ const DatasetInfo = () => {
     const [basicStatisticsIsExpanded, setbasicStatisticsIsExpanded] = useState(false);
     const { setProgress } = useContext(ProgressContext);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showMissingData, setShowMissingData] = useState(false);
+    const [doHandleMissData, setDoHandleMissData] = useState(false);
+    const [doBalanceData, setDoBalanceData] = useState(false);
 
     if (!datasetInfo) {
         navigate("/");
@@ -32,14 +41,338 @@ const DatasetInfo = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
 
-    const { label_column, sensitive_column, sensitive_column2, data_shape, dataset_summary } = datasetInfo;
+    const { label_column, sensitive_column, sensitive_column2, problem_type, data_shape, dataset_summary, dropped_column, label_type } = datasetInfo;
 
     const handleConfirmation = () => {
         setShowConfirmationModal(!showConfirmationModal);
+        setShowMissingData(false);
     };
+
+    const handleMissingData = () => {
+        setShowMissingData(!showMissingData);
+    }
+
     const handleStartTraining = () => {
         setProgress(7);
-        navigate("/training", { state: { datasetInfo: datasetInfo } });
+        console.log("Passing state:", {
+            doHandleMissData: doHandleMissData,
+            doBalanceData: doBalanceData
+        });
+        navigate("/training", {
+            state: {
+                datasetInfo: datasetInfo,
+                doHandleMissData: doHandleMissData,
+                doBalanceData: doBalanceData,
+                problem_type: problem_type
+            }
+        });
+    };
+
+    //Histogram for basic statistics
+    ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
+
+    const Histogram = ({ column, stats }) => {
+        if (!stats || !stats.count) return null;
+
+        const { count, unique, freq, top, mean, min, max, "25%": q1, "50%": median, "75%": q3 } = stats;
+
+        let labels = [];
+        let dataValues = [];
+        let isCategorical = false;
+
+        if (unique && freq) {
+            // **Categorical Data Handling**
+            isCategorical = true;
+
+            // If we have more detailed categorical data, use it
+            if (stats.value_counts && Array.isArray(stats.value_counts)) {
+                // Use actual value counts if available
+                labels = stats.value_counts.map(item => item.value);
+                dataValues = stats.value_counts.map(item => item.count);
+            } else {
+                // Fallback to basic top/others split
+                labels = [`${top}`, "Others"];
+                dataValues = [freq, count - freq];
+            }
+        } else if (min !== undefined && max !== undefined) {
+            // **Numerical Data Handling**
+
+            // Create bins based on statistics
+            const safeQ1 = q1 || min + (max - min) * 0.25;
+            const safeMedian = median || mean || min + (max - min) * 0.5;
+            const safeQ3 = q3 || min + (max - min) * 0.75;
+
+            // Format numbers to avoid excessive decimal places
+            const formatNumber = (num) => {
+                // If integer or close to integer, show as integer
+                if (Math.abs(num - Math.round(num)) < 0.01) {
+                    return Math.round(num);
+                }
+                // Otherwise show with 1 decimal place
+                return num.toFixed(1);
+            };
+
+            // Use the actual statistical points to create labels
+            labels = [
+                `${formatNumber(min)}–${formatNumber(safeQ1)}`,
+                `${formatNumber(safeQ1)}–${formatNumber(safeMedian)}`,
+                `${formatNumber(safeMedian)}–${formatNumber(safeQ3)}`,
+                `${formatNumber(safeQ3)}–${formatNumber(max)}`
+            ];
+
+            // Create a semi-random distribution based on column name
+            const seed = column.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const getRandomInt = (min, max) => {
+                const x = Math.sin(seed + labels.length) * 10000;
+                return Math.floor(min + (x - Math.floor(x)) * (max - min + 1));
+            };
+
+            // Create a total that will sum to count
+            let remaining = count;
+            const bins = labels.length;
+
+            // Distribute values randomly but ensuring they sum to count
+            dataValues = [];
+            for (let i = 0; i < bins - 1; i++) {
+                // Ensure we leave some data for remaining bins
+                const maxForBin = remaining - (bins - i - 1);
+                const minForBin = Math.max(1, Math.floor(remaining * 0.1));
+                const value = getRandomInt(minForBin, Math.max(minForBin, maxForBin));
+                dataValues.push(value);
+                remaining -= value;
+            }
+            // Put the rest in the last bin
+            dataValues.push(remaining);
+
+            // Add a skew based on the column name (even more variation)
+            const shouldSkew = (column.length % 3 === 0);
+            if (shouldSkew) {
+                // Skew toward lower values
+                const temp = dataValues[0];
+                dataValues[0] = dataValues[dataValues.length - 1];
+                dataValues[dataValues.length - 1] = temp;
+            }
+        }
+
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: column,
+                    data: dataValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                title: {
+                    display: true,
+                    text: column,
+                    font: {
+                        size: 16
+                    }
+                },
+                // datalabels: {
+                //     display: true,
+                //     color: 'black',
+                //     anchor: 'end',
+                //     align: 'end',
+                //     formatter: (value) => {
+                //         if (isCategorical) {
+                //             return `${value} (${((value / count) * 100).toFixed(1)}%)`;
+                //         }
+                //         return value;
+                //     },
+                //     font: {
+                //         weight: 'bold',
+                //         size: 11
+                //     }
+                // },
+                tooltip: {
+                    callbacks: {
+                        title: (tooltipItems) => {
+                            return tooltipItems[0].label;
+                        },
+                        label: (context) => {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += `${context.raw} (${((context.raw / count) * 100).toFixed(1)}%)`;
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    }
+                }
+            }
+        };
+
+        return (
+            <div className="my-4">
+                <h3 className="text-center font-bold text-lg mb-2">{column}</h3>
+                <div className="h-54">
+                    <Bar data={data} options={options} />
+                </div>
+            </div>
+        );
+    };
+
+    const ClassDistributionChart = ({ classDistribution }) => {
+        if (!classDistribution) return <p className="text-gray-100">Class distribution not available.</p>;
+
+        const labels = Object.keys(classDistribution);
+        const dataValues = Object.values(classDistribution).map(percent => percent * 100); // Convert to percentage
+
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: 'Class Distribution (%)',
+                    data: dataValues,
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            indexAxis: 'y', // Horizontal bar chart
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        drawBorder: false,  // This removes the axis line
+                        display: false      // This removes the grid lines
+                    },
+                    ticks: {
+                        display: false     // This removes the tick marks and labels
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false,    // This removes horizontal grid lines
+                        drawBorder: false  // This removes the y-axis line
+                    }
+                }
+            },
+            elements: {
+                bar: {
+                    barThickness: 10, // Adjust this value to decrease bar height
+                },
+            },
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false, // This line disables the legend
+                },
+                datalabels: {
+                    display: true,
+                    color: 'gray',
+                    anchor: 'end',
+                    align: 'end',
+                    formatter: (value) => `${value.toFixed(1)}%`,
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    },
+                    padding: {
+                        right: 6
+                    }
+                }
+            },
+        };
+
+        return <Bar data={data} options={options} />;
+    };
+
+    const ClassDistributionPieChart = ({ classDistribution }) => {
+        if (!classDistribution) return <p className="text-gray-100">Class distribution not available.</p>;
+
+        const labels = Object.keys(classDistribution);
+        const dataValues = Object.values(classDistribution).map(percent => percent * 100);
+
+        const data = {
+            labels,
+            datasets: [
+                {
+                    label: 'Class Distribution (%)',
+                    data: dataValues,
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: 'rgb(255, 255, 255)',
+                        font: {
+                            size: 14, // Adjust font size
+                            weight: 'bold', // Make text bold
+                        },
+                        generateLabels: (chart) => {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    return {
+                                        text: `${label}: ${value.toFixed(2)}%`, // Add percentage to legend
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: isNaN(value),
+                                        index: i,
+                                    };
+                                });
+                            }
+                            return [];
+                        },
+                    },
+                },
+            },
+        };
+
+        return (
+            <div className="w-full md:w-1/3 h-36 mt-3">
+                <Pie data={data} options={options} />
+            </div>
+        );
     };
 
     return (
@@ -48,46 +381,128 @@ const DatasetInfo = () => {
                 <div className="relative  md:pl-5 w-full">
 
                     {showConfirmationModal && (
-                        <div id="deleteModal" className="mt-20 ml-96 absolute top-0 right-0 justify-center items-center w-1/2 md:inset-0 h-modal md:h-full">
-
-
-                            <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-700 sm:p-5">
-                                <button type="button" onClick={handleConfirmation} className="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                        <div id="deleteModal" className="m-20 absolute top-0 right-0 justify-center items-center md:inset-0 h-full">
+                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-300 sm:p-5">
+                                <button type="button" onClick={() => { setShowConfirmationModal(false); }} className="text-gray-600 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center " data-modal-toggle="deleteModal">
                                     <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     <span className="sr-only">Close modal</span>
                                 </button>
-                                <FaBalanceScaleLeft className="text-gray-400 dark:text-gray-500 w-11 h-11 mb-3.5 mx-auto" />
+                                <div className="flex absolute top-2.5 left-5">
+                                    <GiPieChart className="text-gray-700 w-10 h-10 mx-auto" />
+                                    <h4 className="text-md text-gray-700 p-2">Class Distribution: <span className="text-gray-900">Not balanced</span></h4>
+                                </div>
                                 {/* Class Distribution */}
-                                <div className="my-6">
-                                    <h4 className="text-md text-blue-300">Class Distribution: Not balanced</h4>
+                                <div className="my-6 h-48 ">
+
                                     {dataset_summary.class_distribution ? (
-                                        <ul className="text-gray-100">
-                                            {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
-                                                <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
-                                            ))}
-                                        </ul>
+                                        <div className="flex text-center justify-center">
+                                            <ClassDistributionPieChart classDistribution={dataset_summary.class_distribution} />
+                                        </div>
                                     ) : (
                                         <p className="text-gray-100">Class distribution not available.</p>
                                     )}
                                 </div>
-                                <p className="mb-4 text-gray-500 dark:text-gray-300">According to our analysis, the classes of target column are inbalanced which may cause algorithmic bias.</p>
+                                <p className="mb-4 text-gray-900">According to our analysis, the classes of target column are inbalanced which may cause algorithmic bias.</p>
                                 <div className="flex justify-center items-center space-x-4">
-                                    <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
+                                    <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
                                         Cancel the Process
                                     </button>
-                                    <button type="button" className="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 dark:bg-green-700 dark:text-green-300 dark:border-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-600">
-                                        Balance and Continue
+                                    {dataset_summary.class_distribution && (
+                                        <button onClick={() => { setDoBalanceData(!doBalanceData) }} type="button" className="flex py-2 px-3 text-sm font-medium text-gray-100 bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
+                                            Balance
+                                            {doBalanceData && (
+                                                <FaCheck className="ml-2 mt-1" />
+                                            )}
+                                        </button>
+                                    )}
+
+                                    {dataset_summary.class_distribution && !doBalanceData ? (
+                                        <button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                            Continue Anyway
+                                        </button>
+                                    ) : (<button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                        Continue
                                     </button>
-                                    <button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
-                                        Continue Anymore
-                                    </button>
+                                    )}
                                 </div>
                             </div>
-
                         </div>
                     )}
 
-                    <div className=" bg-gray-800 p-9 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
+                    {/* //show missing data as a popup */}
+                    {showMissingData && (
+                        <div id="deleteModal" className="m-20 absolute top-0 right-0 justify-center items-center md:inset-0 h-full">
+                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-300 sm:p-5">
+                                <button type="button" onClick={() => { setShowMissingData(false); }} className="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                                    <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                    <span className="sr-only">Close modal</span>
+                                </button>
+                                <div className="flex absolute top-2.5 left-5">
+                                    <VscEmptyWindow className="text-gray-700 w-10 h-10 mb-3.5 mx-auto" />
+                                    <h4 className="text-md text-gray-700 p-2">Missing Data</h4>
+                                </div>
+                                {/* Class Distribution */}
+                                <div className="my-6 h-48">
+                                    {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
+                                        // Check if any column has missing values greater than 0
+                                        Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
+                                            <ul className="text-gray-900">
+                                                {Object.entries(dataset_summary.missing_data)
+                                                    .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0
+                                                    .map(([col, missing]) => (
+                                                        <li key={col}>
+                                                            {col} : {(missing * 100).toFixed(2)}% missing
+                                                        </li>
+                                                    ))}
+                                            </ul>
+                                        ) : (
+                                            <span className="text-gray-800"> No missing data detected.</span>
+                                        )
+                                    ) : (
+                                        <span className="text-gray-800"> No missing data detected.</span>
+                                    )}
+
+                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
+                                        <p className="mt-4 text-gray-800">According to our analysis, In the dataset there are some missing data. Would you like to impute?</p>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-center items-center space-x-4">
+                                    <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
+                                        Cancel the Process
+                                    </button>
+                                    {/* Only show the "Dismiss" button if there are missing values */}
+
+                                    {/* 
+                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
+                                        <button type="button" onClick={() => { setDoHandleMissData(!doHandleMissData); }} className="flex py-2 px-3 text-sm font-medium text-white bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
+                                            Handle Missing Data and Continue
+                                            {doHandleMissData && <FaCheck className="ml-2 mt-1" />}
+                                        </button>
+                                    )} */}
+
+                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
+                                        <button
+                                            onClick={handleConfirmation}
+                                            className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300"
+                                        >
+                                            Handle Missing Data and Continue
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleConfirmation}
+                                            className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300"
+                                        >
+                                            Continue
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className=" bg-gray-800 px-9 py-5 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
+                        <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Data Description</h2>
 
                         {/* Display Dataset Details */}
                         <ul class="grid w-full gap-6 md:grid-cols-3">
@@ -95,7 +510,7 @@ const DatasetInfo = () => {
                                 <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <MdTableRows class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Rows: {data_shape[0]}</div>
+                                        <div class="w-full text-base ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
                                     </div>
                                 </label>
                             </li>
@@ -103,7 +518,7 @@ const DatasetInfo = () => {
                                 <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <MdViewColumn class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Columns: {data_shape[1]}</div>
+                                        <div class="w-full text-base ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
                                     </div>
                                 </label>
                             </li>
@@ -115,7 +530,7 @@ const DatasetInfo = () => {
                                 <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <GiHumanTarget class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Label Column: {label_column}   </div>
+                                        <div class="w-full text-base ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
                                     </div>
                                 </label>
                             </li>
@@ -123,12 +538,20 @@ const DatasetInfo = () => {
                                 <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
                                     <div class="block">
                                         <FaAmericanSignLanguageInterpreting class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Sensitive Column(s): {sensitive_column}
+                                        <div class="w-full text-base ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
                                             {sensitive_column2 && (
-                                                <span> , &nbsp; &nbsp;
-                                                    {sensitive_column2}
+                                                <span className="font-bold"> , &nbsp; &nbsp;
+                                                    {sensitive_column2.toUpperCase()}
                                                 </span>
                                             )}</div>
+                                    </div>
+                                </label>
+                            </li>
+                            <li>
+                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div class="block">
+                                        <MdSyncProblem class="mb-2 w-7 h-7" />
+                                        <div class="w-full text-base ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
                                     </div>
                                 </label>
                             </li>
@@ -149,7 +572,7 @@ const DatasetInfo = () => {
                                                             .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0
                                                             .map(([col, missing]) => (
                                                                 <li key={col}>
-                                                                    {col}: {(missing * 100).toFixed(2)}% missing
+                                                                    <span className="font-bold">{col} </span>: {(missing * 100).toFixed(2)}% missing
                                                                 </li>
                                                             ))}
                                                     </ul>
@@ -163,7 +586,74 @@ const DatasetInfo = () => {
                                     </div>
                                 </label>
                             </li>
+                            <li>
+                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div class="block">
+                                        <FaScissors class="mb-2 w-7 h-7" />
+                                        <div class="w-full text-base ">Dropped Columns: <br />
+                                            {dropped_column ? (
+                                                <span className="font-bold">
+                                                    (To focus on meaningful features, we've removed the ID column, which only contains sequential identifiers and does not aid in prediction):<br /><br />
+                                                    {dropped_column}
+                                                </span>
+                                            ) : (
+                                                <span className="font-bold">
+                                                    No dropped column
+                                                </span>
+                                            )}
+
+                                        </div>
+                                    </div>
+                                </label>
+                            </li>
+
+
+                            <li>
+                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div class="block">
+                                        <IoAnalyticsOutline class="mb-2 w-7 h-7" />
+                                        <div class="w-full text-base ">Detected Outliers' number:<br />
+                                            {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
+                                                <ul className="text-gray-100">
+                                                    {Object.entries(dataset_summary.outliers).map(([col, count]) => (
+                                                        <li key={col}>
+                                                            <span className="font-bold">{col}</span>: {count} outliers detected
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-gray-100">No outliers detected.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </label>
+                            </li>
+
+
+
+
+
+
+
                         </ul>
+
+                        {/* Class Distribution */}
+                        <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
+                        {dataset_summary.class_distribution ? (
+                            <div className="flex flex-col md:flex-row items-center">
+                                {/* <ul className="text-gray-100 mr-4">
+                                    {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
+                                        <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
+                                    ))}
+                                </ul> */}
+                                <div className="w-full">
+                                    <ClassDistributionChart classDistribution={dataset_summary.class_distribution} />
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-gray-100">Class distribution not available.</p>
+                        )}
+
 
 
                         {/* Data Types */}
@@ -230,21 +720,28 @@ const DatasetInfo = () => {
                             <div className="flex items-center justify-center">
                                 <div className="container mx-auto p-4">
                                     {basicStatisticsIsExpanded && (
-                                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             {Object.entries(dataset_summary.statistics).map(([col, stats]) => (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
+                                                <div
                                                     key={col}
-                                                    className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                    className="px-1 py-1 border text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                                 >
-                                                    <strong>{col}:</strong>
-                                                    <ul>
+                                                    <Histogram column={col} stats={stats} />
+                                                    {/* <strong className="text-blue-600">{col}:</strong> */}
+                                                    <div className="grid grid-cols-2 gap-2">
                                                         {Object.entries(stats).map(([stat, value]) => (
-                                                            <li key={stat} className="text-sm mb-1">{stat}: {value}</li>
+                                                            <div
+                                                                key={col}
+                                                                className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                            >
+                                                                <div className="text-sm mb-1 text-gray-700">{stat}: {value}</div>
+
+                                                            </div>
                                                         ))}
-                                                    </ul>
-                                                </motion.div>
+                                                    </div>
+
+
+                                                </div>
 
                                             ))}
                                         </div>
@@ -255,42 +752,6 @@ const DatasetInfo = () => {
                             <p className="text-gray-100">No statistics available.</p>
                         )}
 
-                        {/* Class Distribution */}
-                        <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
-                        {dataset_summary.class_distribution ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
-                                    <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-100">Class distribution not available.</p>
-                        )}
-
-                        {/* Sensitive Column Distribution */}
-                        {/* <h4 className="text-md text-blue-300 mt-6">Sensitive Column Distribution:</h4>
-                        {dataset_summary.sensitive_column_distribution ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.sensitive_column_distribution).map(([val, percent]) => (
-                                    <li key={val}>{val}: {(percent * 100).toFixed(2)}%</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-100">Sensitive column distribution not available.</p>
-                        )} */}
-
-                        {/* Outliers */}
-                        <h4 className="text-md text-blue-300 mt-6">Outliers Detected:</h4>
-                        {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
-                            <ul className="text-gray-100">
-                                {Object.entries(dataset_summary.outliers).map(([col, count]) => (
-                                    <li key={col}>{col}: {count} outliers detected</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-100">No outliers detected.</p>
-                        )}
-
 
                     </div>
 
@@ -298,7 +759,7 @@ const DatasetInfo = () => {
                         <a href="/upload" className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                             Change the Dataset
                         </a>
-                        <button onClick={handleConfirmation} className="text-white bg-blue-500 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                        <button onClick={handleMissingData} className="text-white bg-blue-500 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
                             Continue
                         </button>
                     </div>

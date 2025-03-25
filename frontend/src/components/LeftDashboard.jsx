@@ -16,7 +16,7 @@ const LeftDashboard = () => {
             {progress > 0 && (
                 <>
                     <div className='text-white h-24'>
-                        <p className='text-sm'>Experiment by using your own dataset then, determine the <span className='font-bold'>Label Column,</span> and <span className='font-bold'> Sensitive Column</span>  to assess bias and fairness.</p>
+                        <p className='text-sm'>Experiment by using your own dataset then, determine the <span className='font-bold'>Target Label,</span> and <span className='font-bold'> Sensitive Column</span>  to assess bias and fairness.</p>
                     </div>
                     <Progress />
                 </>

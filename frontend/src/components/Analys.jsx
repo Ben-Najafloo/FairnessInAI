@@ -3,8 +3,8 @@ import { useLocation, Link } from 'react-router-dom';
 import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
-import { MdEmail, MdOutlineQrCodeScanner } from "react-icons/md";
-import { IoMdHome } from "react-icons/io";
+import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
+// import { IoMdHome } from "react-icons/io";
 
 
 // download
@@ -75,7 +75,6 @@ const Analys = () => {
     };
 
 
-
     if (!result) {
         return <p>No results available. Please start training.</p>;
     }
@@ -86,12 +85,23 @@ const Analys = () => {
         fairness_score,
         performance_score,
         fairness_metric,
-        performance_metric,
+        // performance_metric,
         non_numeric_columns,
         algorithm,
         sensitive_label_mapping,
-        sensitive_test
+        sensitive_test,
+        fairness_reason,
+        precision,
+        recall
     } = evaluation || {};
+
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const date = today.getDate();
+    const currentDate = month + "/" + date + "/" + year;
+
+
 
     return (
         <div className='pl-5 pr-5 relative '>
@@ -103,20 +113,20 @@ const Analys = () => {
                             <svg class="mr-1.5 size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
                                 <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
                             </svg>
-                            Done on January 9, 2025
+                            Done on {currentDate}
                         </div>
                     </div>
                 </div>
                 <div class="flex lg:ml-4 lg:mt-0">
                     <span class="hidden sm:block">
-                        <Link to="/"
-                            className="text-blue-500 flex border-2 border-blue-500 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
-                            <IoMdHome className="mr-3 text-xl" />Home
+                        <Link to="/upload"
+                            className="text-white flex border-2 border-white hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                            <MdAddchart className="mr-3 text-xl" />New Assessment
                         </Link>
                     </span>
 
                     <span class="ml-3 hidden sm:block">
-                        <button onClick={handleSharing} className="text-red-500 flex border-2 border-red-500 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                        <button onClick={handleSharing} className="text-blue-300 flex border-2 border-blue-300 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
                             Get Report <FaRegShareFromSquare className="ml-3 text-xl" />
                         </button>
                     </span>
@@ -186,12 +196,27 @@ const Analys = () => {
 
                         <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Accuracy Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</span>
+                            </div>
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Precision Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{precision !== undefined ? precision : 'N/A'}</span>
+                            </div>
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Recall Score:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{recall !== undefined ? recall : 'N/A'}</span>
+                            </div>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Score:</span>
                                 <span className="text-sm text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score : 'N/A'}</span>
                             </div>
+
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Performance Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score : 'N/A'}</span>
+                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Features:</span>
+                                <span className="text-sm text-gray-900 dark:text-white">{fairness_reason !== undefined ? fairness_reason : 'N/A'}</span>
                             </div>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
@@ -199,16 +224,16 @@ const Analys = () => {
                                 <span className="text-base text-gray-900 dark:text-white">Fairness Metric:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{fairness_metric !== undefined ? fairness_metric : 'N/A'}</span>
                             </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                            {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">Performance Metric:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white"> {performance_metric !== undefined ? performance_metric : 'N/A'}</span>
-                            </div>
+                            </div> */}
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">Algorithm:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{algorithm}</span>
                             </div>
                         </div>
-                        <div className="grid gap-4 grid-cols-1 mt-2">
+                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
                             <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
                                 <span className="text-base text-gray-900 dark:text-white">One-hot encoded columns:</span><br />
                                 <span className="text-sm text-gray-900 dark:text-white">{non_numeric_columns && non_numeric_columns.length > 0 ? non_numeric_columns.join(' , ') : 'N/A'} </span>

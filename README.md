@@ -40,9 +40,3 @@ Thesis/
 ├── .gitignore # Ignore unnecessary files for Git
 ├── README.md # Project documentation
 └── other_files # Any shared files or resources
-
-python -m venv venv
-source venv/Scripts/activate  
-pip install -r requirements.txt
-
-pip install flask fairlearn scikit-learn pandas

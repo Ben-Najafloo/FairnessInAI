@@ -7,7 +7,8 @@ import Result from './components/Result';
 import DatasetInfo from './components/DatasetInfo';
 import Training from './components/Training';
 import Analys from './components/Analys';
-import Test from './components/Test'
+import Test from './components/Test';
+import Document from './components/Document'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Router>
         <Routes>
           <Route index element={<Home />} />
+          <Route path='/document' element={<Document />} />
           <Route path="/" element={<Layout />}>
 
             <Route path="/upload" element={<Upload />} />

@@ -2,18 +2,22 @@ from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
-from ml.ml_functions import preprocess_data, train_model, train_model_with_fairness
 import logging
 from flask_cors import CORS
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+# from ml.ml_functions import preprocess_data, train_model_with_fairness
+from ml.tpot_ml import preprocess_data, train_model_with_fairness
+
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler()],
-    force=True  # Ensure custom logging overrides Flask's default
+    force=True  
 )
-logging.getLogger('werkzeug').setLevel(logging.ERROR)  # Suppress Werkzeug logs
+logging.getLogger('werkzeug').setLevel(logging.ERROR)  
 logging.info("App is starting...")
 
 app = Flask(__name__)
@@ -41,25 +45,42 @@ def upload_file():
     try:
         # Read the dataset
         data = pd.read_csv(file)
-        # logging.debug(f"Data columns: {data.columns}")
-        # logging.debug(f"Data dimensions: {data.shape}")
 
+        # Identify and drop a unique ID column
+        dropped_column = None
+        for col in data.columns:
+            if data[col].nunique() == len(data):  # Check uniqueness
+                dropped_column = col
+                data = data.drop(columns=[col])
+                logging.info(f"Dropped ID column: {col}")
+                break  
+        
         # Get label and sensitive columns
         label_column = request.form.get('label_column')
         sensitive_column = request.form.get('sensitive_column')
         sensitive_column2 = request.form.get('sensitive_column2')
-
-        # logging.info(f"Label column: {label_column}")
-        # logging.info(f"Sensitive column: {sensitive_column}")
+        problem_type = request.form.get('problem_type')
+        
 
         if label_column not in data.columns or sensitive_column not in data.columns:
             logging.warning(f"Label column '{label_column}' or sensitive column '{sensitive_column}' not found.")
             return jsonify({'error': f"Columns '{label_column}' or '{sensitive_column}' not found in dataset"}), 400
 
+         # Determine label column type (categorical or continuous)
+        if data[label_column].dtype in ['int64', 'float64'] and data[label_column].nunique() > 10:
+            label_type = 'Continuous'
+        else:
+            label_type = 'Categorical'
+        logging.info(f"Label column '{label_column}' is detected as {label_type}.")
+        
         # Preprocess data
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
         logging.info("Preprocessing completed successfully.")
         # logging.debug(f"Feature data (X) shape: {X.shape}")
+
+        # Calculate missing data percentages
+        missing_data = get_missing_data(data)
+        # logging.info(f"Missing data before handling: {missing_data}")
 
         # Generate Dataset Analysis
         dataset_summary = {
@@ -72,31 +93,32 @@ def upload_file():
             'class_distribution': get_class_distribution(data, label_column),
             'sensitive_column_distribution': get_sensitive_column_distribution(data, sensitive_column)
         }
+        # logging.error(f"Missing data before handling: {get_missing_data(data)}")
+        
 
         response = {
             'message': 'Dataset processed successfully.',
             'dataset_summary': dataset_summary,
             'label_column': label_column,
+            'label_type': label_type,
             'file_name': file.filename,
             'sensitive_column': sensitive_column,
             'sensitive_column2': sensitive_column2,
+            'problem_type': problem_type,
             'data_shape': list(data.shape),  # Convert tuple to list
-            'features_shape': list(X.shape)  # Convert tuple to list
+            'features_shape': list(X.shape),  # Convert tuple to list
+            'dropped_column': dropped_column
         }
-
-
 
         # Store data and metadata in a global variable
         uploaded_data['data'] = data
         uploaded_data['label_column'] = label_column
         uploaded_data['sensitive_column'] = sensitive_column
-
+        uploaded_data['problem_type'] = problem_type
         logging.info("Data and metadata stored in global variable.")
 
-        # logging.info(f"Response to frontend: {response}")  # Log for debugging
         return jsonify(response)
     
-
     except Exception as e:
         logging.error(f"Error during file upload: {e}")
         return jsonify({'error': str(e)}), 500
@@ -109,20 +131,16 @@ def get_missing_data(df):
     # logging.debug(f"Missing data: {missing_data}")
     return missing_data
 
-
 def get_data_types(df):
     """Returns the data types of each column."""
     data_types = {col: str(dtype) for col, dtype in df.dtypes.items()}
     # logging.debug(f"Data types: {data_types}")
     return data_types
 
-
 def get_statistics(df):
     """Returns basic statistics for numerical columns."""
     stats = df.describe().round(2).to_dict()
-    # logging.debug(f"Statistics: {stats}")
     return stats
-
 
 def detect_outliers(df):
     """Detects outliers using the Z-score method."""
@@ -135,7 +153,6 @@ def detect_outliers(df):
     # logging.debug(f"Outliers detected: {outlier_summary}")
     return outlier_summary
 
-
 def get_class_distribution(df, label_column):
     """Returns the distribution of classes in the label column."""
     if label_column in df.columns:
@@ -143,7 +160,6 @@ def get_class_distribution(df, label_column):
         # logging.debug(f"Class distribution: {class_dist}")
         return class_dist
     return None
-
 
 def get_sensitive_column_distribution(df, sensitive_column):
     """Returns the distribution of the sensitive column."""
@@ -153,50 +169,109 @@ def get_sensitive_column_distribution(df, sensitive_column):
         return sensitive_dist
     return None
 
+# Missing Data Handling Function
+def handle_missing_data(df, strategy="mean"):
+    imputer = SimpleImputer(strategy=strategy)
+    df_numeric = df.select_dtypes(include=['number'])
+    df[df_numeric.columns] = imputer.fit_transform(df_numeric)
 
+    for col in df.select_dtypes(include=['object', 'category']).columns:
+        if df[col].isnull().any():
+            df[col].fillna(df[col].mode()[0], inplace=True)
+
+    return df
 
 @app.route('/train', methods=['POST'])
 def train_model():
     global uploaded_data
     try:
-
-        # Retrieve data and columns from global storage
+        # Ensure data is available
         if not uploaded_data:
             raise ValueError("No data found. Please upload a dataset first.")
 
-        data = uploaded_data['data']
+        # Retrieve data and columns from global storage
+        data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
+        problem_type = uploaded_data.get('problem_type', None)  
+
+        if problem_type is None:
+            raise ValueError("Problem type is not defined. Please specify the problem type during upload.")
 
         # Extract user configurations
         config = request.json
-        algorithm = config['selectedAlgorithms'][0]
-        fairness_metric = config['selectedFairnessMetrics'][0]
-        performance_metric = config['selectedPerformanceMetrics'][0]
-        test_size = config['splitRatio'] / 100
+        algorithm = config.get('selectedAlgorithms', ['Linear Regression'])[0]
+        fairness_metric = config.get('selectedFairnessMetrics', ['Demographic Parity'])[0]
+        performance_metric = config.get('performanceMetric', 'Accuracy')
+        test_size = config.get('splitRatio', 20) / 100
+        do_balance_data = config.get('doBalanceData', False)
+        strategy = config.get('strategy', 'mean')
+        
+        # TPOT configuration
+        tpot_generations = config.get('tpotGenerations', 10)
+        tpot_population_size = config.get('tpotPopulationSize', 30)
 
-        logging.info(f"Training with {algorithm}, Fairness: {fairness_metric}, Metric: {performance_metric}, Test size: {test_size}")
+        # Handle missing data if requested
+        logging.info(f"Handling missing data with strategy: {strategy}")
+        data = handle_missing_data(data, strategy=strategy)
+        # Log missing data after handling
+        missing_data_after_handling = get_missing_data(data)
+        logging.info(f"Missing data after handling: {missing_data_after_handling}")
 
-        # Ensure X, y, and sensitive are available (from preprocess_data)
+        # Log class distribution before balancing
+        class_distribution_before_balancing = get_class_distribution(data, label_column)
+        logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
+
+        # Preprocess data for training
+        logging.info("Preprocessing data for training")
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
 
-        # Call ML functions
-        trained_model, evaluation_results, = train_model_with_fairness(
-            X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size
+        # Train the model
+        logging.info(f"Starting model training with {algorithm} for {problem_type} problem")
+        model, evaluation_results = train_model_with_fairness(
+            X, y, sensitive, 
+            algorithm=algorithm,
+            fairness_metric=fairness_metric, 
+            performance_metric=performance_metric,
+            test_size=test_size,
+            tpot_generations=tpot_generations,
+            tpot_population_size=tpot_population_size,
+            problem_type=problem_type
         )
 
         # Respond with results
-        return jsonify({
+        response_data = {
             'message': 'Model trained successfully',
-            'evaluation': evaluation_results
-        })
+            'evaluation': evaluation_results,
+            'class_distribution_before_balancing': class_distribution_before_balancing,
+
+        }
+        
+        # Add problem-specific metrics to response
+        if problem_type.lower() == 'regression':
+            response_data['regression_metrics'] = {
+                'MAE': evaluation_results.get('mae'),
+                'MSE': evaluation_results.get('mse'),
+                'RMSE': evaluation_results.get('rmse'),
+                'R2': evaluation_results.get('r2')
+            }
+            
+        return jsonify(response_data)
 
     except Exception as e:
-        logging.error(f"Error during training: {e}")
+        logging.error(f"Error during training: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
-
-
-
+    
+    
 if __name__ == '__main__':
     # Disable reloader to avoid double logs
     app.run(debug=True, use_reloader=False)
+
+
+
+
+
+
+
+
+    
