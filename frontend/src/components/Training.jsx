@@ -153,10 +153,10 @@ const Training = () => {
                                 <div style={{ justifyContent: 'center', alignItems: 'center' }}>
                                     <ScaleLoader color="#FFFFFF" loading={true} size={200} />
                                     <p className='text-white'>Training in progress...</p>
-                                    <p className='text-white'>It is working with TPOT Algorithm</p>
+                                    <p className='text-white'>It is working with TPOT Algorithm. IT will terminate when the first condition is met.</p>
                                     <p className='text-white'>Generation size: 5  </p>
                                     <p className='text-white'>Population size: 15  </p>
-                                    <p className='text-white'>It will take some minutes, enjoy your coffee!</p>
+                                    <p className='text-white'>This may take a while, enjoy your coffee!</p>
                                 </div>
                             </div>
                         </div>

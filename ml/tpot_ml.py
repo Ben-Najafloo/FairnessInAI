@@ -281,21 +281,6 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 # 'f1_score': float(f1)
             })
             
-            # Generate confusion matrix - only simple version for multiclass
-            # if is_binary:
-            #     cm = confusion_matrix(y_test, y_pred)
-            #     cm_dict = {
-            #         'true_negative': int(cm[0][0]),
-            #         'false_positive': int(cm[0][1]),
-            #         'false_negative': int(cm[1][0]),
-            #         'true_positive': int(cm[1][1])
-            #     }
-            # else:
-            #     # For multiclass, just provide the raw confusion matrix
-            #     cm = confusion_matrix(y_test, y_pred).tolist()
-            #     cm_dict = {"matrix": cm}
-                
-            # additional_metrics['confusion_matrix'] = cm_dict
             
         except Exception as e:
             logger.error(f"Error calculating classification metrics: {e}")
