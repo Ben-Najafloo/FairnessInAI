@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import Slider from '@mui/material/Slider';
 import axios from 'axios';
+
 import { motion } from 'framer-motion';
 import { ScaleLoader } from 'react-spinners';
 import { BsCaretDownFill } from "react-icons/bs";
