@@ -4,14 +4,15 @@ import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 // import { IoMdHome } from "react-icons/io";
 
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 // download
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-
-
 
 const Analys = () => {
     const location = useLocation();
@@ -74,7 +75,6 @@ const Analys = () => {
         }
     };
 
-
     if (!result) {
         return <p>No results available. Please start training.</p>;
     }
@@ -85,7 +85,6 @@ const Analys = () => {
         fairness_score,
         performance_score,
         fairness_metric,
-        // performance_metric,
         non_numeric_columns,
         algorithm,
         sensitive_label_mapping,
@@ -102,6 +101,124 @@ const Analys = () => {
     const currentDate = month + "/" + date + "/" + year;
 
 
+    // Register the required Chart.js components
+    ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+    const MetricsBarChart = () => {
+        // Data from your evaluation
+        const data = {
+            labels: ['Accuracy', 'Precision', 'Recall', 'Fairness'],
+            datasets: [
+                {
+                    data: [performance_score, precision, recall, fairness_score],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                    ],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false,
+                    position: 'top',
+                    labels: {
+                        color: 'white'
+                    }
+                },
+                title: {
+                    display: false,
+                    text: 'Model Performance and Fairness Metrics',
+                    font: {
+                        size: 16,
+                    },
+                    color: 'white'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.formattedValue;
+                            return label;
+                        }
+                    },
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)'
+                },
+                // Add datalabels configuration here
+                datalabels: {
+                    color: 'white',
+                    anchor: 'center',
+                    align: 'center',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function (value) {
+                        return value.toFixed(2);
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    title: {
+                        display: false,
+                        text: 'Score',
+                        font: {
+                            size: 14,
+                        },
+                        color: 'white'
+                    },
+                    ticks: {
+                        callback: function (value) {
+                            return value.toFixed(2);
+                        },
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: false,
+                        text: 'Metrics',
+                        font: {
+                            size: 14,
+                        },
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+        };
+        return (
+            <div className="w-full max-w-2xl p-4 mt-5 ml-11">
+                <Bar data={data} options={options} />
+            </div>
+        );
+    };
 
     return (
         <div className='pl-5 pr-5 relative '>
@@ -181,7 +298,7 @@ const Analys = () => {
             )}
 
             <div className='h-[520px] max-h-[540px] overflow-auto mt-4'>
-                <section id="analysis-section" className="px-24 pt-7 pb-2 antialiased mb-7 bg-gray-800 py-4 rounded-lg">
+                <section id="analysis-section" className="px-24 pt-7 pb-2 antialiased mb-7 bg-gray-700 py-4 rounded-lg">
 
                     <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
 
@@ -194,67 +311,51 @@ const Analys = () => {
                             </div>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Accuracy Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</span>
-                            </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Precision Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{precision !== undefined ? precision : 'N/A'}</span>
-                            </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Recall Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{recall !== undefined ? recall : 'N/A'}</span>
-                            </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score : 'N/A'}</span>
-                            </div>
+                        <div className="flex">
+                            <div className="grid gap-3 grid-cols-1">
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Accuracy Score:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Precision Score:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{precision !== undefined ? precision : 'N/A'}</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Recall Score:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{recall !== undefined ? recall : 'N/A'}</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Fairness Score:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score : 'N/A'}</div>
+                                </div>
 
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Features:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_reason !== undefined ? fairness_reason : 'N/A'}</span>
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Fairness Features:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{fairness_reason !== undefined ? fairness_reason : 'N/A'}</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Fairness Metric:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{fairness_metric !== undefined ? fairness_metric : 'N/A'}</div>
+                                </div>
+
+                                <div className="flex items-center border-b border-b-green-200 px-4 py-1  ">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">Algorithm:</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{algorithm}</div>
+                                </div>
+                                {/* <div className="flex items-center border-b border-b-green-400 px-4 py-1  ">
+                                    <div className="text-base w-40 text-gray-900 dark:text-white">One-hot encoded columns:</div>
+                                    <span className="text-sm text-gray-900 dark:text-white">{non_numeric_columns && non_numeric_columns.length > 0 ? non_numeric_columns.join(' , ') : 'N/A'} </span>
+                                </div> */}
                             </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Fairness Metric:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_metric !== undefined ? fairness_metric : 'N/A'}</span>
-                            </div>
-                            {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Performance Metric:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white"> {performance_metric !== undefined ? performance_metric : 'N/A'}</span>
-                            </div> */}
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Algorithm:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{algorithm}</span>
-                            </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">One-hot encoded columns:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{non_numeric_columns && non_numeric_columns.length > 0 ? non_numeric_columns.join(' , ') : 'N/A'} </span>
+                            <div className="grid gap-3 grid-cols-1">
+                                <MetricsBarChart className="text-whait" />
                             </div>
                         </div>
 
                     </div>
 
                     <div className="grid gap-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 mt-2 ">
-                        {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                            <span className="text-base  text-gray-900 dark:text-white">Sensitive Label Mapping:</span><br />
-                            <ul className='grid w-full gap-6 md:grid-cols-5'>
-                                {Object.entries(sensitive_label_mapping).map(([label, value]) => (
-                                    <li key={label}
-                                        className="text-sm text-gray-900 dark:text-white">
-                                        <span>{label}:</span> <span className='ml-3'>{value}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div> */}
-
                         <span className="text-base text-gray-900 dark:text-white mt-5">Sensitive Label Mapping:</span>
                         <div className="flex items-center justify-center ">
                             <div className="container mx-auto p-1">
@@ -270,7 +371,6 @@ const Analys = () => {
                                 </div>
                             </div>
                         </div>
-
 
                         <span className="text-base text-gray-900 dark:text-white mt-5">Sensitive Test Values:</span>
                         <div className="flex items-center justify-center ">
@@ -295,14 +395,5 @@ const Analys = () => {
         </div>
     );
 };
-
-
-
-
-
-
-
-
-
 
 export default Analys;

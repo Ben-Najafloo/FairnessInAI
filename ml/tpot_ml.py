@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC  
+from sklearn.naive_bayes import GaussianNB  
 import logging
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from fairlearn.metrics import demographic_parity_difference, equalized_odds_difference
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import LabelEncoder
@@ -178,6 +180,12 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         model.fit(X_train, y_train)
     elif algorithm == 'Random Forest Classification':
         model = RandomForestClassifier()
+        model.fit(X_train, y_train)
+    elif algorithm == 'Support Vector Machine':  # New algorithm
+        model = SVC(probability=True)  # probability=True enables predict_proba
+        model.fit(X_train, y_train)
+    elif algorithm == 'Naive Bayes':  # New algorithm
+        model = GaussianNB()
         model.fit(X_train, y_train)
     else:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
