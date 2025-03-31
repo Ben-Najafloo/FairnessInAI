@@ -7,6 +7,7 @@ from sklearn.naive_bayes import GaussianNB
 import logging
 from sklearn.model_selection import train_test_split
 from fairlearn.metrics import demographic_parity_difference, equalized_odds_difference
+# , equal_opportunity_difference, disparate_impact_ratio
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
@@ -215,6 +216,16 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
             fairness_score = equalized_odds_difference(
                 y_test, y_pred, sensitive_features=sensitive_test
             )
+        # elif fairness_metric == 'Equal Opportunity':
+        #     fairness_score = equal_opportunity_difference(
+        #         y_test, y_pred, sensitive_features=sensitive_test
+        #     )
+        # elif fairness_metric == 'Disparate Impact':
+        #     fairness_score = disparate_impact_ratio(
+        #         y_test, y_pred, sensitive_features=sensitive_test
+        #     )
+            # Convert ratio to difference-like scale for consistency
+            fairness_score = abs(1 - fairness_score)
         else:
             raise ValueError(f"Unsupported fairness metric: {fairness_metric}")
             
