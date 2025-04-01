@@ -17,7 +17,7 @@ const Progress = () => {
                             className={`p-2 border rounded ${index + 1 === progress
                                 ? "text-blue-700 bg-blue-100 border-blue-300"
                                 : index + 1 < progress
-                                    ? "text-green-400 border-green-400"
+                                    ? "text-green-200 border-green-200"
                                     : "text-white border-white"
                                 }`}
                             role="alert"

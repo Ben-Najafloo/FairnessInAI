@@ -7,7 +7,9 @@ from flask_cors import CORS
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 # from ml.ml_functions import preprocess_data, train_model_with_fairness
-from ml.tpot_ml import preprocess_data, train_model_with_fairness
+# from ml.tpot_ml import train_model_with_fairness
+from ml.firelearn_integrated import train_model_with_fairness
+from ml.preprocess import preprocess_data
 
 
 # Configure logging

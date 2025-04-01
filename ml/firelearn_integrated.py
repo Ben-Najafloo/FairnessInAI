@@ -1,20 +1,17 @@
-# import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from tpot import TPOTClassifier, TPOTRegressor
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC  
 from sklearn.naive_bayes import GaussianNB  
-import logging
-from sklearn.model_selection import train_test_split
-from fairlearn.metrics import demographic_parity_difference, equalized_odds_difference
-# , equal_opportunity_difference, disparate_impact_ratio
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, mean_absolute_error, mean_squared_error, r2_score
+from fairlearn.metrics import MetricFrame, demographic_parity_difference, equalized_odds_difference
 from sklearn.preprocessing import LabelEncoder
-from datetime import datetime
-from tpot import TPOTRegressor, TPOTClassifier
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.feature_selection import VarianceThreshold
-
+import logging
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -23,11 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-non_numeric_columns = {}
-sensitive_label_mapping = {}
-
-def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size, 
-                             tpot_generations, tpot_population_size, problem_type='classification'):
+def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size,
+                                tpot_generations, tpot_population_size, problem_type='classification'):
     global sensitive_label_mapping, non_numeric_columns
     logger.info("Starting Training...")
 
@@ -59,7 +53,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     # Check if we have a binary or multiclass problem
     n_classes = len(np.unique(y))
     is_binary = n_classes == 2
-    
+
     if is_binary:
         logger.info("Detected binary classification task")
         average_method = 'binary'
@@ -69,16 +63,17 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
 
     # Save original feature names for feature importance analysis
     feature_names = list(X.columns)
-    
+
     # Split the dataset
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-    sensitive_train, sensitive_test = train_test_split(sensitive, test_size=test_size, random_state=42)
-    
+    X_train, X_test, y_train, y_test, sensitive_train, sensitive_test = train_test_split(
+        X, y, sensitive, test_size=test_size, random_state=42
+    )
+
     # Log dataset shapes
     logger.debug(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
     logger.debug(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
     logger.debug(f"sensitive_train shape: {sensitive_train.shape}, sensitive_test shape: {sensitive_test.shape}")
-    
+
     # Select model based on algorithm choice
     if algorithm == 'TPOT':
         # Choose the appropriate TPOT model based on problem type
@@ -92,7 +87,6 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
             )
         else:  # Classification
             logger.info("Using TPOT for classification task")
-            # Updated: Modern TPOT doesn't use config_dict parameter
             tpot_model = TPOTClassifier(
                 generations=tpot_generations,
                 population_size=tpot_population_size,
@@ -104,27 +98,25 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         selector = VarianceThreshold(threshold=0.01)  # Removes features with near-zero variance
         X_train = selector.fit_transform(X_train)
         X_test = selector.transform(X_test)
-        
+
         # Keep track of selected features after variance thresholding
         selected_features = [feature_names[i] for i, selected in enumerate(selector.get_support()) if selected]
         logger.debug(f"Features after variance thresholding: {selected_features}")
-        
+
         # Fit TPOT to training data
         logger.info("Starting TPOT training. This may take a while...")
         tpot_model.fit(X_train, y_train)
-        
+
         # Get the best model pipeline found by TPOT
         model = tpot_model.fitted_pipeline_
-        
-        # Try to export pipeline using the newer approach
+
+        # Try to export pipeline
         try:
             pipeline_filename = f"tpot_{problem_type.lower()}_pipeline.py"
-            # Check if export method exists
             if hasattr(tpot_model, 'export'):
                 tpot_model.export(pipeline_filename)
                 logger.info(f"Exported best pipeline to {pipeline_filename}")
             else:
-                # Alternative export approach for newer TPOT versions
                 with open(pipeline_filename, 'w') as f:
                     f.write(f"# TPOT optimized pipeline\n")
                     f.write(f"# Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -136,7 +128,6 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 logger.info(f"Exported pipeline description to {pipeline_filename}")
         except Exception as e:
             logger.warning(f"Could not export pipeline: {e}")
-            
     elif algorithm == 'Logistic Regression':
         model = LogisticRegression()
         model.fit(X_train, y_train)
@@ -150,37 +141,55 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         model = GaussianNB()
         model.fit(X_train, y_train)
     else:
-        raise ValueError(f"Unsupported algorithm: {algorithm}")
+        raise ValueError(f"Algorithm {algorithm} is not supported using the provided changes. TPOT is the only supported algorithm")
 
     # Make predictions
     y_pred = model.predict(X_test)
-    
-    # Calculate additional metrics based on problem type
-    additional_metrics = {}
-    if problem_type.lower() == 'regression':
-        additional_metrics = {
-            'mae': float(mean_absolute_error(y_test, y_pred)),
-            'mse': float(mean_squared_error(y_test, y_pred)),
-            'rmse': float(np.sqrt(mean_squared_error(y_test, y_pred))),
-            'r2': float(r2_score(y_test, y_pred))
+
+    # Fairness Assessment using Fairlearn
+    if problem_type.lower() != 'regression':
+        # Define fairness metric functions that are compatible with MetricFrame
+        fairness_metrics = {
+            'accuracy': accuracy_score,
         }
-        # For regression problems, set default fairness score (since fairness metrics are for classification)
-        fairness_score = 0.0
-        fairness_reason = "Regression task - fairness metrics not applicable"
-    else:
-        # Evaluate fairness metric (for classification problems)
-        if fairness_metric == 'Demographic Parity':
-            fairness_score = demographic_parity_difference(
-                y_test, y_pred, sensitive_features=sensitive_test
+        
+        # Add fairness metrics directly to the dictionary without custom wrappers
+        if fairness_metric.lower().replace(" ", "_") == 'demographic_parity_difference':
+            fairness_metrics['demographic_parity_difference'] = lambda y_true, y_pred: demographic_parity_difference(
+                y_true=y_true, 
+                y_pred=y_pred, 
+                sensitive_features=sensitive_test
             )
-        elif fairness_metric == 'Equalized Odds':
-            fairness_score = equalized_odds_difference(
-                y_test, y_pred, sensitive_features=sensitive_test
+        if fairness_metric.lower().replace(" ", "_") == 'equalized_odds_difference':
+            fairness_metrics['equalized_odds_difference'] = lambda y_true, y_pred: equalized_odds_difference(
+                y_true=y_true, 
+                y_pred=y_pred, 
+                sensitive_features=sensitive_test
             )
-            fairness_score = abs(1 - fairness_score)
-        else:
-            raise ValueError(f"Unsupported fairness metric: {fairness_metric}")
             
+        # Create the MetricFrame without using keyword-only arguments
+        metric_frame = MetricFrame(
+            metrics=fairness_metrics,
+            y_true=y_test,
+            y_pred=y_pred,
+            sensitive_features=sensitive_test
+        )
+
+        fairness_metric_key = fairness_metric.replace(" ", "_").lower()
+        if fairness_metric_key in metric_frame.overall:
+            fairness_score = metric_frame.overall[fairness_metric_key]
+        else:
+            # Fallback to direct calculation if the metric is not in the frame
+            if fairness_metric_key == 'demographic_parity_difference':
+                fairness_score = demographic_parity_difference(y_test, y_pred, sensitive_features=sensitive_test)
+            elif fairness_metric_key == 'equalized_odds_difference':
+                fairness_score = equalized_odds_difference(y_test, y_pred, sensitive_features=sensitive_test)
+            else:
+                fairness_score = 0.0
+                logger.warning(f"Unknown fairness metric: {fairness_metric}")
+                
+        fairness_reason = f"Fairness score ({fairness_metric}): {fairness_score:.4f}"
+
         # Analyze fairness - when fairness score is 0 or close to 0
         if abs(fairness_score) < 0.01:
             # Check predictions by sensitive group
@@ -222,13 +231,22 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
             except Exception as e:
                 logger.warning(f"Could not analyze feature importance: {e}")
                 fairness_reason = f"Perfect fairness achieved (score={fairness_score:.4f}), but couldn't analyze feature importance."
-        else:
-            fairness_reason = f"Fairness score is {fairness_score:.4f}, which indicates some bias."
+    else:
+        fairness_score = 0.0
+        fairness_reason = "Regression task - fairness metrics not applicable"
 
     # Evaluate performance (for classification)
-    if problem_type.lower() != 'regression':
+    additional_metrics = {}
+    if problem_type.lower() == 'regression':
+        additional_metrics = {
+            'mae': float(mean_absolute_error(y_test, y_pred)),
+            'mse': float(mean_squared_error(y_test, y_pred)),
+            'rmse': float(np.sqrt(mean_squared_error(y_test, y_pred))),
+            'r2': float(r2_score(y_test, y_pred))
+        }
+        performance_score = r2_score(y_test, y_pred)
+    else:
         try:
-            # Calculate primary performance metric
             if performance_metric == 'Accuracy':
                 performance_score = accuracy_score(y_test, y_pred)
             elif performance_metric == 'Precision':
@@ -237,76 +255,53 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 performance_score = recall_score(y_test, y_pred, average=average_method)
             else:
                 raise ValueError(f"Unsupported performance metric: {performance_metric}")
-                
-            # Calculate additional metrics with appropriate averaging method
-            recall = recall_score(y_test, y_pred, average=average_method)
-            precision = precision_score(y_test, y_pred, average=average_method)
-            accuracy = accuracy_score(y_test, y_pred)
-            
-            # Add additional classification metrics
+
             additional_metrics.update({
-                'accuracy': float(accuracy),
-                'precision': float(precision),
-                'recall': float(recall),
-                # 'f1_score': float(f1)
+                'accuracy': float(accuracy_score(y_test, y_pred)),
+                'precision': float(precision_score(y_test, y_pred, average=average_method)),
+                'recall': float(recall_score(y_test, y_pred, average=average_method))
             })
-                       
         except Exception as e:
             logger.error(f"Error calculating classification metrics: {e}")
-            # Fallback to accuracy if other metrics fail
             performance_score = accuracy_score(y_test, y_pred)
             additional_metrics.update({
                 'accuracy': float(performance_score),
                 'error': str(e)
             })
-    else:
-        # For regression, use R2 as the default performance metric
-        performance_score = r2_score(y_test, y_pred)
 
     # Log scores
-    if problem_type.lower() != 'regression':
-        logger.debug(f"Fairness Score ({fairness_metric}): {fairness_score}")
-        logger.debug(f"Fairness Analysis: {fairness_reason if 'fairness_reason' in locals() else 'Not analyzed'}")
-        logger.debug(f"Recall Score: {recall if 'recall' in locals() else 'Not calculated'}")
+    logger.debug(f"Fairness Score ({fairness_metric}): {fairness_score}")
+    logger.debug(f"Fairness Analysis: {fairness_reason}")
     logger.debug(f"Performance Score ({performance_metric}): {performance_score}")
 
     # Convert NumPy and Pandas types to Python native types
-    sensitive_test_native = [int(val) for val in sensitive_test]  # Convert sensitive_test to Python native integers
-    
-    # Handle sensitive_label_mapping conversion
-    if isinstance(sensitive_label_mapping, dict):
-        sensitive_label_mapping_native = {str(k): int(v) for k, v in sensitive_label_mapping.items()}
-    else:
-        sensitive_label_mapping_native = {}
-    
-    # Convert scores to native Python types
-    fairness_score_native = float(fairness_score) if 'fairness_score' in locals() else 0.0
+    sensitive_test_native = [int(val) for val in sensitive_test]
+    sensitive_label_mapping_native = {str(k): int(v) for k, v in sensitive_label_mapping.items()} if isinstance(sensitive_label_mapping, dict) else {}
+    fairness_score_native = float(fairness_score)
     performance_score_native = float(performance_score)
 
     # For TPOT, include the best pipeline code
-    pipeline_info = {}
-    if algorithm == 'TPOT':
-        pipeline_info = {
-            'tpot_best_pipeline': str(model),
-            'pipeline_file': pipeline_filename if 'pipeline_filename' in locals() else None
-        }
-    
+    pipeline_info = {
+        'tpot_best_pipeline': str(model),
+        'pipeline_file': pipeline_filename if 'pipeline_filename' in locals() else None
+    }
+
     # Respond with JSON-serializable data
     results = {
         'fairness_score': fairness_score_native,
         'performance_score': performance_score_native,
         'fairness_metric': fairness_metric,
         'performance_metric': performance_metric,
-        'fairness_reason': fairness_reason if 'fairness_reason' in locals() else None,
-        'non_numeric_columns': list(non_numeric_columns),  
-        'sensitive_label_mapping': sensitive_label_mapping_native,  
-        'sensitive_test': sensitive_test_native,  
+        'fairness_reason': fairness_reason,
+        'non_numeric_columns': list(non_numeric_columns),
+        'sensitive_label_mapping': sensitive_label_mapping_native,
+        'sensitive_test': sensitive_test_native,
         'algorithm': algorithm,
         'problem_type': problem_type,
         'is_multiclass': not is_binary,
         'num_classes': int(n_classes),
-        **additional_metrics,  # Add the additional metrics
+        **additional_metrics,
         'pipeline_info': pipeline_info
     }
-    
+
     return model, results
