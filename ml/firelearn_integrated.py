@@ -1,17 +1,25 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from tpot import TPOTClassifier, TPOTRegressor
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC  
 from sklearn.naive_bayes import GaussianNB  
-from sklearn.metrics import accuracy_score, precision_score, recall_score, mean_absolute_error, mean_squared_error, r2_score
-from fairlearn.metrics import MetricFrame, demographic_parity_difference, equalized_odds_difference
+from sklearn.metrics import accuracy_score, precision_score, recall_score, mean_absolute_error, mean_squared_error, r2_score, confusion_matrix, roc_curve, auc, f1_score
+from fairlearn.metrics import MetricFrame, demographic_parity_difference, equalized_odds_difference, selection_rate, false_positive_rate, false_negative_rate
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_selection import VarianceThreshold
 import logging
 from datetime import datetime
+
+from ml.additional_fairness_def import generate_additional_insights, generate_visualizations, create_insights_dashboard
+
+import io
+import base64
+import shap
 
 # Configure logging
 logging.basicConfig(
@@ -19,6 +27,8 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
 
 def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size,
                                 tpot_generations, tpot_population_size, problem_type='classification'):
@@ -274,6 +284,9 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     logger.debug(f"Fairness Analysis: {fairness_reason}")
     logger.debug(f"Performance Score ({performance_metric}): {performance_score}")
 
+    
+    
+
     # Convert NumPy and Pandas types to Python native types
     sensitive_test_native = [int(val) for val in sensitive_test]
     sensitive_label_mapping_native = {str(k): int(v) for k, v in sensitive_label_mapping.items()} if isinstance(sensitive_label_mapping, dict) else {}
@@ -286,7 +299,29 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         'pipeline_file': pipeline_filename if 'pipeline_filename' in locals() else None
     }
 
-    # Respond with JSON-serializable data
+
+    feature_names = list(X.columns)
+    
+    # Generate additional insights
+    additional_insights = generate_additional_insights(model, X_test, y_test, y_pred, sensitive_test, feature_names)
+    
+    # Create comprehensive dashboard
+    dashboard_data = create_insights_dashboard(model, X, y, sensitive, X_test, y_test, y_pred, sensitive_test, feature_names)
+    
+    # Generate visualizations and convert to base64 for JSON serialization
+    viz_raw = generate_visualizations(model, X_test, y_test, y_pred, sensitive_test, feature_names)
+    viz_base64 = {}
+    for name, fig in viz_raw.items():
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png')
+        buf.seek(0)
+        img_str = base64.b64encode(buf.read()).decode('utf-8')
+        viz_base64[name] = img_str
+
+    # logger.debug(f"additional insights: {additional_insights}")
+    logger.debug(f"dashboard data: {dashboard_data}")
+    
+    # Your existing code to create results...
     results = {
         'fairness_score': fairness_score_native,
         'performance_score': performance_score_native,
@@ -301,7 +336,12 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         'is_multiclass': not is_binary,
         'num_classes': int(n_classes),
         **additional_metrics,
-        'pipeline_info': pipeline_info
+        'pipeline_info': pipeline_info,
+        # Add insights to results
+        'additional_insights': additional_insights,
+        'fairness_dashboard': dashboard_data,
+        'visualizations_base64': viz_base64  # Use base64 encoded images
     }
-
+    
     return model, results
+

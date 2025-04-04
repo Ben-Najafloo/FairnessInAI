@@ -134,6 +134,7 @@ const Training = () => {
             const response = await axios.post("http://localhost:5000/train", formData);
             const result = response.data;
             setProgress(8);
+            console.log('Training Result:', result);
             setIsLoading(false); // Stop loading after success
             navigate('/analys', { state: { result } });
         } catch (error) {

@@ -36,7 +36,6 @@ const DatasetInfo = () => {
     const dataTypeView = () => {
         setDataTypeIsExpanded(!dataTypeIsExpanded);
     };
-
     const basicStatisticsView = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
@@ -505,40 +504,40 @@ const DatasetInfo = () => {
                         <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Data Description</h2>
 
                         {/* Display Dataset Details */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdTableRows class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdTableRows className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
                                     </div>
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdViewColumn class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdViewColumn className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
                                     </div>
                                 </label>
                             </li>
                         </ul>
 
                         {/* Display columns Details */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3 mt-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <GiHumanTarget class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <GiHumanTarget className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
                                     </div>
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <FaAmericanSignLanguageInterpreting class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <FaAmericanSignLanguageInterpreting className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
                                             {sensitive_column2 && (
                                                 <span className="font-bold"> , &nbsp; &nbsp;
                                                     {sensitive_column2.toUpperCase()}
@@ -548,22 +547,22 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdSyncProblem class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdSyncProblem className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
                                     </div>
                                 </label>
                             </li>
                         </ul>
 
                         {/* Missing Data */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3 mt-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <VscEmptyWindow class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Missing Data:&nbsp;
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <VscEmptyWindow className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Missing Data:&nbsp;
                                             {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                                 // Check if any column has missing values greater than 0
                                                 Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
@@ -587,10 +586,10 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <FaScissors class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Dropped Columns: <br />
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <FaScissors className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Dropped Columns: <br />
                                             {dropped_column ? (
                                                 <span className="font-bold">
                                                     (To focus on meaningful features, we've removed the ID column, which only contains sequential identifiers and does not aid in prediction):<br /><br />
@@ -609,10 +608,10 @@ const DatasetInfo = () => {
 
 
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <IoAnalyticsOutline class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Detected Outliers' number:<br />
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <IoAnalyticsOutline className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-base ">Detected Outliers' number:<br />
                                             {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
                                                 <ul className="text-gray-100">
                                                     {Object.entries(dataset_summary.outliers).map(([col, count]) => (
@@ -659,7 +658,7 @@ const DatasetInfo = () => {
                         {/* Data Types */}
                         <div className="flex text-md text-blue-300 mt-6">
                             <h4>Data Types:</h4>
-                            <button onClick={dataTypeView} class=" hover:font-bold px-5 inline-flex items-center">
+                            <button onClick={dataTypeView} className=" hover:font-bold px-5 inline-flex items-center">
                                 {dataTypeIsExpanded ? (
                                     <>
                                         <span>Hide</span>
@@ -701,7 +700,7 @@ const DatasetInfo = () => {
                         {/* Statistics */}
                         <div className="flex text-md text-blue-300 mt-6">
                             <h4>Basic Statistics:</h4>
-                            <button onClick={basicStatisticsView} class=" hover:font-bold px-5 inline-flex items-center">
+                            <button onClick={basicStatisticsView} className=" hover:font-bold px-5 inline-flex items-center">
                                 {basicStatisticsIsExpanded ? (
                                     <>
                                         <span>Hide</span>
