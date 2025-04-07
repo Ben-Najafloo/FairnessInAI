@@ -4,6 +4,7 @@ import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
+import FairnessDashboard from './FairnessDashboard';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 // import { IoMdHome } from "react-icons/io";
 
@@ -166,7 +167,7 @@ const Analys = () => {
     const currentDate = month + "/" + date + "/" + year;
 
 
-    // Performane metric bar chart
+
     ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
     const MetricsBarChart = () => {
         // Data from your evaluation
@@ -405,7 +406,7 @@ const Analys = () => {
                                 </div>
                                 <div className="flex items-center border-b border-b-green-200 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">F1 Score:</div>
-                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{f1_score !== undefined ? f1_score : 'N/A'}</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{f1_score !== undefined ? f1_score.toFixed(2) : 'N/A'}</div>
                                 </div>
 
                                 <div className="flex items-center border-b border-b-green-200 px-2 pb-2">
@@ -418,7 +419,7 @@ const Analys = () => {
                                 </div>
                                 <div className="flex items-center border-b border-b-green-200 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Accuracy Disparity:</div>
-                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{accuracy_disparity !== undefined ? accuracy_disparity : 'N/A'}</div>
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">{accuracy_disparity !== undefined ? accuracy_disparity.toFixed(2) : 'N/A'}</div>
                                 </div>
                                 <div className="flex items-center border-b border-b-green-200 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Selection Rate Disparity:</div>
@@ -523,17 +524,13 @@ const Analys = () => {
                     </div>
 
                     <div className="grid gap-3 grid-cols-1 mt-24">
-                        {/* <div className="h-96">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={featureImportanceData} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" />
-                                    <YAxis dataKey="name" type="category" width={120} />
-                                    <Tooltip />
-                                    <Bar dataKey="value" fill="#8884d8" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div> */}
+                        <div>
+                            {feature_importance && Object.keys(feature_importance).length > 0 && (
+                                <div className="mt-8">
+                                    <FairnessDashboard featureImportance={feature_importance} />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </section>
 
