@@ -64,7 +64,7 @@ const Upload = () => {
             setSensitiveCulumnBox(true);
 
             setLabelErrorMessage('');
-            setProgress(4);
+
         }
     }
 
@@ -96,7 +96,7 @@ const Upload = () => {
             setProblemType(true);
             console.log(sensitiveColumn, sensitiveColumn2);
             setSensitiveErrorMessage('');
-            setProgress(5);
+
         }
     }
 
@@ -104,11 +104,11 @@ const Upload = () => {
         setFileName(true);
         setSensitiveCulumnBox(false);
         setProblemType(false);
-        setProgress(4);
+
     }
 
     const backToSensitiveColumn = () => {
-        setProgress(5);
+
         setProblemType(false);
         setSensitiveCulumnBox(true);
     }
@@ -194,7 +194,7 @@ const Upload = () => {
             setErrorMessage(''); // Clear any previous error messages
 
             navigate("/dataset-info", { state: { datasetInfo: response.data } });
-            setProgress(6); // Move to the next step in your flow
+            setProgress(4); // Move to the next step in your flow
         } catch (error) {
             console.error("There was an error uploading the file!", error);
             setErrorMessage("Error in uploading dataset or processing request.");
@@ -202,15 +202,15 @@ const Upload = () => {
     };
 
     return (
-        <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
+        <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
 
             {!datasetFile && (
-                <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
+                <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
                     <label>
                         <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
                             <div className="relative items-center  justify-center">
                                 {/* Conditionally render elements based on datasetFile state */}
-                                <div className='text-xl pt-8 text-center text-gray-500 dark:text-gray-400 relative items-center justify-center'>
+                                <div className='text-base pt-8 text-center text-gray-300 relative items-center justify-center'>
 
                                     {errorMessage ? (
                                         <p>
@@ -244,8 +244,8 @@ const Upload = () => {
             )}
 
             {fileName && (
-                <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
-                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+                <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
+                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center bg-gray-700 text-white">
                         {labelErrorMessage && (
                             <p className="mb-2 text-red-600 absolute top-11">
                                 {labelErrorMessage}
@@ -278,7 +278,7 @@ const Upload = () => {
                                                         onChange={(e) => setLabelColumn(e.target.value)}
                                                         checked={labelColumn === col}
                                                         class="hidden peer" />
-                                                    <label htmlFor={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                    <label htmlFor={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
                                                         <div class="block">
                                                             <div class="w-full text-base">{col}</div>
                                                         </div>
@@ -289,12 +289,12 @@ const Upload = () => {
 
                                         {columns.length > itemsPerPage && (
                                             <div class="flex flex-col mt-5">
-                                                <div class="inline-flex justify-end mt-2 xs:mt-0">
+                                                <div class="inline-flex justify-end mt-2 xs:mt-0 text-sm">
 
                                                     <button
                                                         onClick={() => setTargetCurrentPage((prev) => Math.max(prev - 1, 1))}
                                                         disabled={targetCurrentPage === 1}
-                                                        class="flex items-center justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        class="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                                         <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
                                                         </svg>
@@ -305,7 +305,7 @@ const Upload = () => {
                                                     <button
                                                         onClick={() => setTargetCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                                         disabled={targetCurrentPage === totalPages}
-                                                        class="flex items-center mr-5 justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        class="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                                         <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
@@ -324,8 +324,8 @@ const Upload = () => {
                             <button type="submit"
                                 onClick={handleSensitiveColumn}
                                 className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                                <span className='text-base'>Next</span>
-                                <FaArrowRightLong className="ml-3 text-2xl" />
+                                <span className='text-sm'>Next</span>
+                                <FaArrowRightLong className="ml-3 text-lg" />
                             </button>
                         </div>
 
@@ -346,8 +346,8 @@ const Upload = () => {
             )}
 
             {sensitiveCulumnBox && (
-                <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
-                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+                <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
+                    <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center bg-gray-700 text-white">
 
                         {sensitiveErrorMessage && (
                             <p className="mb-2 text-red-600 absolute top-11">
@@ -377,7 +377,7 @@ const Upload = () => {
                                                         checked={col === sensitiveColumn || col === sensitiveColumn2}
                                                         onChange={() => handleSensitiveOptions(col)}
                                                         className="hidden peer" />
-                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border-2 border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
                                                         <div class="block">
                                                             <div class="w-full text-base">{col}</div>
                                                         </div>
@@ -388,12 +388,12 @@ const Upload = () => {
                                         </div>
                                         {columns.length > itemsPerPage && (
                                             <div class="flex flex-col mt-5">
-                                                <div class="inline-flex mt-2 xs:mt-0 justify-end">
+                                                <div class="inline-flex mt-2 xs:mt-0 justify-end text-sm">
 
                                                     <button
                                                         onClick={() => setSensitiveCurrentPage((prev) => Math.max(prev - 1, 1))}
                                                         disabled={sensitiveCurrentPage === 1}
-                                                        class="flex items-center justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        class="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                                         <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
                                                         </svg>
@@ -404,7 +404,7 @@ const Upload = () => {
                                                     <button
                                                         onClick={() => setSensitiveCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                                         disabled={sensitiveCurrentPage === totalPages}
-                                                        class="flex items-center mr-5 justify-center  px-4 h-7 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        class="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                                                         <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
@@ -423,8 +423,8 @@ const Upload = () => {
                             <button type="submit"
                                 onClick={handleProblemType}
                                 className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                                <span className='text-base'>Next</span>
-                                <FaArrowRightLong className="ml-3 text-2xl" />
+                                <span className='text-sm'>Next</span>
+                                <FaArrowRightLong className="ml-3 text-lg " />
                             </button>
                         </div>
 
@@ -432,8 +432,8 @@ const Upload = () => {
                             <button type="submit"
                                 onClick={backToLabelColumn}
                                 className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                                <span className='text-base'>Back</span>
-                                <FaArrowLeftLong className="ml-3 text-2xl" />
+                                <FaArrowLeftLong className="mr-3 text-lg " />
+                                <span className='text-sm'>Back</span>
                             </button>
                         </div>
 
@@ -442,14 +442,14 @@ const Upload = () => {
             )}
 
             {problemType && (
-                <div className="mx-auto md:pt-4 items-center justify-between pr-11 pl-11 pt-11 w-ful h-full">
-                    <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+                <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
+                    <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center bg-gray-700 text-white">
                         {problemErrorMessage && (
                             <p className="mb-2 text-red-600">
                                 {problemErrorMessage}
                             </p>
                         )}
-                        <div className="items-center justify-center">
+                        <div className="items-center justify-center md:pr-11 md:pl-11">
                             <h3 class="mb-5 text-xl font-medium text-gray-900 dark:text-white">Choose the Problem Type:</h3>
                             <ul class="grid w-full gap-6 md:grid-cols-2">
                                 <li>
@@ -460,13 +460,13 @@ const Upload = () => {
                                         value="regression"
                                         checked={problemTypeColumn === "regression"}
                                         class="hidden peer" />
-                                    <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-black">
+                                    <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
                                         <div class="block">
                                             <div className='flex'>
-                                                <img src={regImg} class="mb-2 w-20 h-20" />
+                                                <img src={regImg} class="mb-2 w-20 h-20" alt="ax" />
                                                 <div class="w-full ml-4">
                                                     <div class="text-xl mb-3 font-semibold">Regression</div>
-                                                    <p class="w-72 text-sm">Regression predicts a continuous output based on input features.</p>
+                                                    <p class="text-sm">Predicts a continuous output based on input features.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -480,13 +480,13 @@ const Upload = () => {
                                         value="classification"
                                         checked={problemTypeColumn === "classification"}
                                         class="hidden peer" />
-                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-black">
+                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
                                         <div class="block">
                                             <div className='flex'>
-                                                <img src={claImg} class="mb-2 w-20 h-20" />
+                                                <img src={claImg} class="mb-2 w-20 h-20" alt="ax" />
                                                 <div class="w-full ml-4">
                                                     <div class="text-xl mb-3 font-semibold">Classification</div>
-                                                    <p class="w-72 text-sm">Classification categorizes inputs into discrete classes or labels.</p>
+                                                    <p class="text-sm">Categorizes inputs into discrete classes or labels.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -498,8 +498,8 @@ const Upload = () => {
                             <button type="submit"
                                 onClick={handleSubmit}
                                 className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                                <span className='text-base'>Next</span>
-                                <FaArrowRightLong className="ml-3 text-2xl" />
+                                <span className='text-sm'>Next</span>
+                                <FaArrowRightLong className="ml-3 text-lg" />
                             </button>
                         </div>
 
@@ -507,8 +507,8 @@ const Upload = () => {
                             <button type="submit"
                                 onClick={backToSensitiveColumn}
                                 className="text-white flex hover:text-green-500 border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded text-base px-7 py-2 text-center">
-                                <span className='text-base'>Back</span>
-                                <FaArrowLeftLong className="ml-3 text-2xl" />
+                                <FaArrowLeftLong className="mr-3 text-lg " />
+                                <span className='text-sm'>Back</span>
                             </button>
                         </div>
 

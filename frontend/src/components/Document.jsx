@@ -1,11 +1,8 @@
 import React from 'react'
 import Nav from './Nav';
 import { useState } from 'react';
+import { MdDeveloperMode, MdVideoCameraFront } from "react-icons/md";
 
-import { IoPerson, IoDiamondSharp } from "react-icons/io5";
-import { MdWork, MdDeveloperMode, MdVideoCameraFront } from "react-icons/md";
-import { FaUniversity, FaReact, FaFigma, FaGithub, FaNodeJs } from "react-icons/fa";
-import { FaBook } from "react-icons/fa6";
 import { GiFilmProjector } from "react-icons/gi";
 import { RiPresentationFill } from "react-icons/ri";
 import { PiStudentFill } from "react-icons/pi";

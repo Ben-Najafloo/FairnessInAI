@@ -4,21 +4,28 @@ import { ProgressContext } from '../ProgressContext';
 import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
-// import { IoMdHome } from "react-icons/io";
+import { SiThealgorithms } from "react-icons/si";
 
+import FairnessDashboard from './analysis-components/FairnessDashboard';
+import FeatureImportanceChart from './analysis-components/FeatureImportanceChart';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+
+import {
+    BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts';
 
 // download
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-
-
 const Analys = () => {
     const location = useLocation();
-    const { result } = location.state || {}; // Get result from location state
+    const { result } = location.state || {};
     const { setProgress } = useContext(ProgressContext);
     const [isShared, setIsShared] = useState(false);
-    // setProgress(6);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -28,17 +35,28 @@ const Analys = () => {
         return () => clearTimeout(timer);
     }, [setProgress]);
 
+
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const date = today.getDate();
+    const currentDate = month + "/" + date + "/" + year;
+
     const handleSharing = () => {
         setProgress(10);
         setIsShared(!isShared);
     };
 
     const handlePDFDownload = async () => {
-        const input = document.getElementById("analysis-section"); // The section to capture as PDF
+        const input = document.getElementById("analysis-section"); // The 
         if (!input) {
             console.error("Element to capture not found");
             return;
         }
+
+        const heading = document.createElement("h2");
+        heading.textContent = "Training Result";
+        input.appendChild(heading);
 
         try {
             // Use html2canvas to capture the DOM element
@@ -74,7 +92,6 @@ const Analys = () => {
         }
     };
 
-
     if (!result) {
         return <p>No results available. Please start training.</p>;
     }
@@ -85,47 +102,181 @@ const Analys = () => {
         fairness_score,
         performance_score,
         fairness_metric,
-        // performance_metric,
         non_numeric_columns,
         algorithm,
         sensitive_label_mapping,
         sensitive_test,
         fairness_reason,
         precision,
-        recall
+        recall,
+        additional_insights
     } = evaluation || {};
+    const {
+        accuracy_disparity,
+        confusion_matrix,
+        f1_score,
+        feature_importance,
+        group_metrics,
+        roc_auc,
+        roc_curve,
+        selection_rate_disparity
 
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-    const date = today.getDate();
-    const currentDate = month + "/" + date + "/" + year;
+    } = additional_insights || {};
+
+    // confusion matrix
+    const trueNegative = confusion_matrix[0][0];
+    const falsePositive = confusion_matrix[0][1];
+    const falseNegative = confusion_matrix[1][0];
+    const truePositive = confusion_matrix[1][1];
+
+    const confusionMatrixData = [
+        { name: 'True Negative', value: trueNegative },
+        { name: 'False Positive', value: falsePositive },
+        { name: 'False Negative', value: falseNegative },
+        { name: 'True Positive', value: truePositive }
+    ];
+
+    // related to confusion matrix pie chart
+    const colors = ['rgba(54, 162, 235, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)'];
 
 
+    ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
+    const MetricsBarChart = () => {
+        const data = {
+            labels: ['Accuracy', 'Precision', 'Recall', 'Fairness', 'F1 Score', 'ROC AUC'],
+            datasets: [
+                {
+                    data: [performance_score, precision, recall, fairness_score, f1_score, roc_auc],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1,
+                },
+            ],
+        };
+
+        const options = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false,
+                    position: 'top',
+                    labels: {
+                        color: 'white'
+                    }
+                },
+                title: {
+                    display: false,
+                    text: 'Model Performance and Fairness Metrics',
+                    font: {
+                        size: 16,
+                    },
+                    color: 'white'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.formattedValue;
+                            return label;
+                        }
+                    },
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)'
+                },
+                // Add datalabels configuration here
+                datalabels: {
+                    color: 'white',
+                    anchor: 'center',
+                    align: 'center',
+                    font: {
+                        weight: 'bold'
+                    },
+                    formatter: function (value) {
+                        return value.toFixed(2);
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    title: {
+                        display: false,
+                        text: 'Score',
+                        font: {
+                            size: 14,
+                        },
+                        color: 'white'
+                    },
+                    ticks: {
+                        callback: function (value) {
+                            return value.toFixed(2);
+                        },
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: false,
+                        text: 'Metrics',
+                        font: {
+                            size: 14,
+                        },
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+        };
+        return (
+            <div className="w-full max-w-2xl p-4 mt-5">
+                <Bar data={data} options={options} />
+            </div>
+        );
+    };
 
     return (
-        <div className='pl-5 pr-5 relative '>
+        <div className='md:pl-5 md:pr-5 relative '>
 
-            <div class="lg:flex lg:items-center lg:justify-between">
-                <div class="min-w-0 flex-1">
-                    <div class="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-                        <div class="flex items-center text-sm text-gray-200">
-                            <svg class="mr-1.5 size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
-                                <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
-                            </svg>
-                            Done on {currentDate}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex lg:ml-4 lg:mt-0">
-                    <span class="hidden sm:block">
+            <div className="flex justify-end items-end w-full">
+                <div className="flex lg:ml-4 lg:mt-0">
+                    <span className="hidden sm:block">
                         <Link to="/upload"
                             className="text-white flex border-2 border-white hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
                             <MdAddchart className="mr-3 text-xl" />New Assessment
                         </Link>
                     </span>
 
-                    <span class="ml-3 hidden sm:block">
+                    <span className="ml-3 hidden sm:block">
                         <button onClick={handleSharing} className="text-blue-300 flex border-2 border-blue-300 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
                             Get Report <FaRegShareFromSquare className="ml-3 text-xl" />
                         </button>
@@ -133,6 +284,7 @@ const Analys = () => {
 
                 </div>
             </div>
+
             {/* sharing report */}
             {isShared && (
                 <div id="deleteModal" className="absolute top-15 right-10 justify-center items-center">
@@ -180,114 +332,161 @@ const Analys = () => {
                 </div>
             )}
 
-            <div className='h-[520px] max-h-[540px] overflow-auto mt-4'>
-                <section id="analysis-section" className="px-24 pt-7 pb-2 antialiased mb-7 bg-gray-800 py-4 rounded-lg">
+            <div className='h-[530px] max-h-[540px] mt-4 overflow-y-scroll scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-700 scrollbar-no-buttons'>
+                <section id="analysis-section" className="px-11 pt-7 pb-2 antialiased mb-7 bg-gray-700 py-4">
 
                     <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
 
                         <div className="mb-4 flex items-center justify-between gap-4 md:mb-8">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">Training Result</h2>
-
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">Training Result</h2>
+                                <div className="min-w-0 flex-1 mt-5">
+                                    <div className="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+                                        <div className="flex items-center text-sm text-gray-200">
+                                            <svg className="mr-1.5 size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
+                                            </svg>
+                                            Done on {currentDate}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="min-w-0 flex-1 mt-4">
+                                    <div className="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+                                        <div className="flex items-center text-sm text-gray-200">
+                                            <SiThealgorithms className="mr-1.5 size-5 shrink-0 text-gray-400" />
+                                            Algorithm:  &nbsp;<span className="text-sm w-64 text-gray-900 dark:text-white"> {algorithm}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="flex text-green-500 items-center text-base font-medium text-primary-700 hover:underline dark:text-primary-500">
                                 <span className='mr-2'>{message}</span>
                                 <FaCheck />
                             </div>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Accuracy Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</span>
+                        <div>
+                            {/* performance metric bar table*/}
+                            <div className="md:grid md:gap-3 md:grid-cols-1">
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Accuracy Score:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Overall correctness of predictions compared to actual outcomes.</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Precision Score:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{precision !== undefined ? precision.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Proportion of true positives among all predicted positives.</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Recall Score:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{recall !== undefined ? recall.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Ability to correctly identify actual positive cases.</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">F1 Score:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{f1_score !== undefined ? f1_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Balanced average of precision and recall.</div>
+                                </div>
+
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">ROC AUC:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{roc_auc !== undefined ? roc_auc.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Model's performance in distinguishing classes (higher = better separation).</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Fairness Score:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-green-400">Metric: {fairness_metric !== undefined ? fairness_metric : 'N/A'}</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Accuracy Disparity:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{accuracy_disparity !== undefined ? accuracy_disparity.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">Variation in accuracy between different groups (lower = fairer).</div>
+                                </div>
+                                <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-48 text-gray-900 dark:text-white">Selection Rate Disparity:</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{selection_rate_disparity !== undefined ? selection_rate_disparity.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm text-gray-900 dark:text-white">No difference in selection rates between groups.</div>
+                                </div>
+                                {/* <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                    <div className="text-sm w-64 text-gray-900 dark:text-white">Fairness Metric:</div>
+                            
+                                </div> */}
+
                             </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Precision Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{precision !== undefined ? precision : 'N/A'}</span>
-                            </div>
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Recall Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{recall !== undefined ? recall : 'N/A'}</span>
-                            </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Score:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score : 'N/A'}</span>
+                            <div className="md:grid md:gap-1 md:grid-cols-1">
+                                {/* performance metric bar chart */}
+                                <MetricsBarChart className="text-whait" />
                             </div>
 
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base mr-4 text-gray-900 dark:text-white">Fairness Features:</span>
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_reason !== undefined ? fairness_reason : 'N/A'}</span>
-                            </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Fairness Metric:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{fairness_metric !== undefined ? fairness_metric : 'N/A'}</span>
-                            </div>
-                            {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Performance Metric:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white"> {performance_metric !== undefined ? performance_metric : 'N/A'}</span>
-                            </div> */}
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">Algorithm:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{algorithm}</span>
-                            </div>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-2">
-                            <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                <span className="text-base text-gray-900 dark:text-white">One-hot encoded columns:</span><br />
-                                <span className="text-sm text-gray-900 dark:text-white">{non_numeric_columns && non_numeric_columns.length > 0 ? non_numeric_columns.join(' , ') : 'N/A'} </span>
-                            </div>
                         </div>
 
                     </div>
 
-                    <div className="grid gap-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 mt-2 ">
-                        {/* <div className="items-center rounded border border-green-400 bg-white px-4 py-2  dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                            <span className="text-base  text-gray-900 dark:text-white">Sensitive Label Mapping:</span><br />
-                            <ul className='grid w-full gap-6 md:grid-cols-5'>
-                                {Object.entries(sensitive_label_mapping).map(([label, value]) => (
-                                    <li key={label}
-                                        className="text-sm text-gray-900 dark:text-white">
-                                        <span>{label}:</span> <span className='ml-3'>{value}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div> */}
+                    <div className="mt-24">
+                        <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Feature Importance:</h4>
+                        <FeatureImportanceChart feature_importance={feature_importance} />
+                    </div>
 
-                        <span className="text-base text-gray-900 dark:text-white mt-5">Sensitive Label Mapping:</span>
-                        <div className="flex items-center justify-center ">
-                            <div className="container mx-auto p-1">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
-                                    {Object.entries(sensitive_label_mapping).map(([label, value]) => (
-                                        <div
-                                            key={label}
-                                            className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                    <div className='mt-24'>
+                        <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Confusion Matrix:</h4>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            {/* confusion matrix pie chart */}
+                            <div className="h-64 mt-5">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={confusionMatrixData}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={true}
+                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                            outerRadius={80}
+                                            fill="#8884d8"
+                                            dataKey="value"
                                         >
-                                            <span>{label}:</span> <span className='ml-3'>{value}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                            {confusionMatrixData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                            ))}
+                                        </Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
-                        </div>
 
-
-                        <span className="text-base text-gray-900 dark:text-white mt-5">Sensitive Test Values:</span>
-                        <div className="flex items-center justify-center ">
-                            <div className="container mx-auto p-1">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
-                                    {sensitive_test.map((value, index) => (
-                                        <div
-                                            key={index}
-                                            className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                        >
-                                            <div className="text-sm mb-1 text-gray-700">Test Result {index + 1}: {value}</div>
-                                        </div>
-                                    ))}
+                            <div className="grid grid-cols-2 gap-2 max-w-md mx-auto h-48 mt-11">
+                                <div className="bg-blue-300 p-4 text-center border">
+                                    <p className="font-bold">{trueNegative}</p>
+                                    <p className="text-sm">True Negative</p>
+                                </div>
+                                <div className="bg-orange-300 p-4 text-center border">
+                                    <p className="font-bold">{falsePositive}</p>
+                                    <p className="text-sm">False Positive</p>
+                                </div>
+                                <div className="bg-orange-300 p-4 text-center border">
+                                    <p className="font-bold">{falseNegative}</p>
+                                    <p className="text-sm">False Negative</p>
+                                </div>
+                                <div className="bg-blue-300 p-4 text-center border">
+                                    <p className="font-bold">{truePositive}</p>
+                                    <p className="text-sm">True Positive</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+
+                    <div className="grid gap-3 grid-cols-1 mt-24">
+                        <div>
+                            {feature_importance && Object.keys(feature_importance).length > 0 && (
+                                <div className="mt-8">
+                                    <FairnessDashboard featureImportance={feature_importance} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+
 
                 </section>
 
@@ -295,14 +494,5 @@ const Analys = () => {
         </div>
     );
 };
-
-
-
-
-
-
-
-
-
 
 export default Analys;

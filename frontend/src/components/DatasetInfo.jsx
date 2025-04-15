@@ -36,7 +36,6 @@ const DatasetInfo = () => {
     const dataTypeView = () => {
         setDataTypeIsExpanded(!dataTypeIsExpanded);
     };
-
     const basicStatisticsView = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
@@ -175,7 +174,7 @@ const DatasetInfo = () => {
                     display: false,
                 },
                 title: {
-                    display: true,
+                    display: false,
                     text: column,
                     font: {
                         size: 16
@@ -239,7 +238,7 @@ const DatasetInfo = () => {
 
         return (
             <div className="my-4">
-                <h3 className="text-center font-bold text-lg mb-2">{column}</h3>
+                <h3 className="text-center text-base mb-2">{column}</h3>
                 <div className="h-54">
                     <Bar data={data} options={options} />
                 </div>
@@ -284,7 +283,10 @@ const DatasetInfo = () => {
                     grid: {
                         display: false,    // This removes horizontal grid lines
                         drawBorder: false  // This removes the y-axis line
-                    }
+                    },
+                    ticks: {
+                        color: 'white'
+                    },
                 }
             },
             elements: {
@@ -299,7 +301,7 @@ const DatasetInfo = () => {
                 },
                 datalabels: {
                     display: true,
-                    color: 'gray',
+                    color: 'white',
                     anchor: 'end',
                     align: 'end',
                     formatter: (value) => `${value.toFixed(1)}%`,
@@ -471,15 +473,6 @@ const DatasetInfo = () => {
                                     <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
                                         Cancel the Process
                                     </button>
-                                    {/* Only show the "Dismiss" button if there are missing values */}
-
-                                    {/* 
-                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
-                                        <button type="button" onClick={() => { setDoHandleMissData(!doHandleMissData); }} className="flex py-2 px-3 text-sm font-medium text-white bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
-                                            Handle Missing Data and Continue
-                                            {doHandleMissData && <FaCheck className="ml-2 mt-1" />}
-                                        </button>
-                                    )} */}
 
                                     {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                         <button
@@ -501,44 +494,44 @@ const DatasetInfo = () => {
                         </div>
                     )}
 
-                    <div className=" bg-gray-800 px-9 py-5 rounded-lg mb-5 w-full max-h-[500px] overflow-auto">
+                    <div className=" bg-gray-800 px-9 py-5  mb-5 w-full max-h-[500px] overflow-y-scroll scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-800 scrollbar-no-buttons">
                         <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Data Description</h2>
 
                         {/* Display Dataset Details */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdTableRows class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdTableRows className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
                                     </div>
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdViewColumn class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdViewColumn className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
                                     </div>
                                 </label>
                             </li>
                         </ul>
 
                         {/* Display columns Details */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3 mt-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <GiHumanTarget class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <GiHumanTarget className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
                                     </div>
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <FaAmericanSignLanguageInterpreting class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <FaAmericanSignLanguageInterpreting className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
                                             {sensitive_column2 && (
                                                 <span className="font-bold"> , &nbsp; &nbsp;
                                                     {sensitive_column2.toUpperCase()}
@@ -548,22 +541,22 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <MdSyncProblem class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <MdSyncProblem className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
                                     </div>
                                 </label>
                             </li>
                         </ul>
 
                         {/* Missing Data */}
-                        <ul class="grid w-full gap-6 md:grid-cols-3 mt-3">
+                        <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <VscEmptyWindow class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Missing Data:&nbsp;
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <VscEmptyWindow className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Missing Data:&nbsp;
                                             {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                                 // Check if any column has missing values greater than 0
                                                 Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
@@ -587,10 +580,10 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <FaScissors class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Dropped Columns: <br />
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <FaScissors className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Dropped Columns: <br />
                                             {dropped_column ? (
                                                 <span className="font-bold">
                                                     (To focus on meaningful features, we've removed the ID column, which only contains sequential identifiers and does not aid in prediction):<br /><br />
@@ -609,10 +602,10 @@ const DatasetInfo = () => {
 
 
                             <li>
-                                <label for="react-option" class="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
-                                    <div class="block">
-                                        <IoAnalyticsOutline class="mb-2 w-7 h-7" />
-                                        <div class="w-full text-base ">Detected Outliers' number:<br />
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                    <div className="block">
+                                        <IoAnalyticsOutline className="mb-2 w-7 h-7" />
+                                        <div className="w-full text-sm ">Detected Outliers' number:<br />
                                             {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
                                                 <ul className="text-gray-100">
                                                     {Object.entries(dataset_summary.outliers).map(([col, count]) => (
@@ -638,14 +631,9 @@ const DatasetInfo = () => {
                         </ul>
 
                         {/* Class Distribution */}
-                        <h4 className="text-md text-blue-300 mt-6">Class Distribution:</h4>
+                        <h4 className="text-md text-blue-300 mt-11">Class Distribution:</h4>
                         {dataset_summary.class_distribution ? (
                             <div className="flex flex-col md:flex-row items-center">
-                                {/* <ul className="text-gray-100 mr-4">
-                                    {Object.entries(dataset_summary.class_distribution).map(([cls, percent]) => (
-                                        <li key={cls}>{cls}: {(percent * 100).toFixed(2)}%</li>
-                                    ))}
-                                </ul> */}
                                 <div className="w-full">
                                     <ClassDistributionChart classDistribution={dataset_summary.class_distribution} />
                                 </div>
@@ -654,61 +642,49 @@ const DatasetInfo = () => {
                             <p className="text-gray-100">Class distribution not available.</p>
                         )}
 
-
-
-                        {/* Data Types */}
-                        <div className="flex text-md text-blue-300 mt-6">
-                            <h4>Data Types:</h4>
-                            <button onClick={dataTypeView} class=" hover:font-bold px-5 inline-flex items-center">
-                                {dataTypeIsExpanded ? (
-                                    <>
-                                        <span>Hide</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>View</span>
-                                    </>
-                                )}
-                                <motion.span animate={{ rotate: dataTypeIsExpanded ? 180 : 0 }}>
-                                    <BsCaretDownFill className="ml-1" />
-                                </motion.span>
-                            </button>
-                        </div>
-                        {dataset_summary.data_types && (
+                        {/* Statistics */}
+                        <div className="text-md text-blue-300 mt-11">
+                            <h4>Basic Statistics:</h4>
                             <div className="flex items-center justify-center">
                                 <div className="container mx-auto p-4">
-                                    {dataTypeIsExpanded && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-                                            {Object.entries(dataset_summary.data_types).map(([col, dtype]) => (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    key={col}
-                                                    className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                >
-                                                    <div className="text-sm mb-1 text-gray-700">{col} : {dtype}</div>
-
-                                                </motion.div>
-                                            ))}
+                                    <div className="flex items-center justify-center">
+                                        <div className="container mx-auto p-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                {Object.entries(dataset_summary.statistics)
+                                                    .slice(0, basicStatisticsIsExpanded ? undefined : 4)
+                                                    .map(([col, stats]) => (
+                                                        <div
+                                                            key={col}
+                                                            className="px-1 py-1 border text-black text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                        >
+                                                            <Histogram column={col} stats={stats} />
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                {Object.entries(stats).map(([stat, value]) => (
+                                                                    <div
+                                                                        key={`${col}-${stat}`} // Unique key for each stat
+                                                                        className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                                    >
+                                                                        <div className="text-sm mb-1 text-gray-700">
+                                                                            {stat}: {value}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
-
-                        )}
-
-
-                        {/* Statistics */}
-                        <div className="flex text-md text-blue-300 mt-6">
-                            <h4>Basic Statistics:</h4>
-                            <button onClick={basicStatisticsView} class=" hover:font-bold px-5 inline-flex items-center">
+                            <button onClick={basicStatisticsView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
                                 {basicStatisticsIsExpanded ? (
                                     <>
-                                        <span>Hide</span>
+                                        <span>Show Less</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span>View</span>
+                                        <span>Show More</span>
                                     </>
                                 )}
                                 <motion.span animate={{ rotate: basicStatisticsIsExpanded ? 180 : 0 }}>
@@ -716,42 +692,52 @@ const DatasetInfo = () => {
                                 </motion.span>
                             </button>
                         </div>
-                        {dataset_summary.statistics && Object.keys(dataset_summary.statistics).length > 0 ? (
-                            <div className="flex items-center justify-center">
-                                <div className="container mx-auto p-4">
-                                    {basicStatisticsIsExpanded && (
-                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                            {Object.entries(dataset_summary.statistics).map(([col, stats]) => (
-                                                <div
-                                                    key={col}
-                                                    className="px-1 py-1 border text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                >
-                                                    <Histogram column={col} stats={stats} />
-                                                    {/* <strong className="text-blue-600">{col}:</strong> */}
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        {Object.entries(stats).map(([stat, value]) => (
-                                                            <div
-                                                                key={col}
-                                                                className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                            >
-                                                                <div className="text-sm mb-1 text-gray-700">{stat}: {value}</div>
-
-                                                            </div>
-                                                        ))}
-                                                    </div>
 
 
-                                                </div>
+                        {/* Data Types */}
+                        <div className=" text-md text-blue-300 mt-11">
+                            <h4>Data Types:</h4>
 
-                                            ))}
+                            {dataset_summary.data_types && (
+                                <div className="flex items-center justify-center">
+                                    <div className="container mx-auto p-4">
+                                        {/*  */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                            {Object.entries(dataset_summary.data_types)
+                                                .slice(0, dataTypeIsExpanded ? undefined : 4)
+                                                .map(([col, dtype]) => (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 5 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        key={col}
+                                                        className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                    >
+                                                        <div className="text-sm mb-1 text-gray-700">{col} : {dtype}</div>
+
+                                                    </motion.div>
+                                                ))}
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-gray-100">No statistics available.</p>
-                        )}
 
+                                    </div>
+                                </div>
+
+                            )}
+
+                            <button onClick={dataTypeView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
+                                {dataTypeIsExpanded ? (
+                                    <>
+                                        <span>Show Less</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Show More</span>
+                                    </>
+                                )}
+                                <motion.span animate={{ rotate: dataTypeIsExpanded ? 180 : 0 }}>
+                                    <BsCaretDownFill className="ml-1" />
+                                </motion.span>
+                            </button>
+                        </div>
 
                     </div>
 

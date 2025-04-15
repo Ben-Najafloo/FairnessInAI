@@ -7,7 +7,9 @@ from flask_cors import CORS
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 # from ml.ml_functions import preprocess_data, train_model_with_fairness
-from ml.tpot_ml import preprocess_data, train_model_with_fairness
+# from ml.tpot_ml import train_model_with_fairness
+from ml.firelearn_integrated import train_model_with_fairness
+from ml.preprocess import preprocess_data
 
 
 # Configure logging
@@ -190,7 +192,7 @@ def train_model():
             raise ValueError("No data found. Please upload a dataset first.")
 
         # Retrieve data and columns from global storage
-        data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data
+        data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data 
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
         problem_type = uploaded_data.get('problem_type', None)  
@@ -201,7 +203,7 @@ def train_model():
         # Extract user configurations
         config = request.json
         algorithm = config.get('selectedAlgorithms', ['Linear Regression'])[0]
-        fairness_metric = config.get('selectedFairnessMetrics', ['Demographic Parity'])[0]
+        fairness_metric = config.get('selectedFairnessMetrics', ['Demographic Parity Difference'])[0]
         performance_metric = config.get('performanceMetric', 'Accuracy')
         test_size = config.get('splitRatio', 20) / 100
         do_balance_data = config.get('doBalanceData', False)
