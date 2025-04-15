@@ -15,7 +15,7 @@ from sklearn.feature_selection import VarianceThreshold
 import logging
 from datetime import datetime
 
-from ml.additional_fairness_def import generate_additional_insights, generate_visualizations, create_insights_dashboard
+from ml.additional_fairness_def import generate_additional_insights,  create_insights_dashboard
 
 import io
 import base64
@@ -32,7 +32,10 @@ logger = logging.getLogger(__name__)
 
 def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, performance_metric, test_size,
                                 tpot_generations, tpot_population_size, problem_type='classification'):
-    global sensitive_label_mapping, non_numeric_columns
+    # Initialize sensitive_label_mapping at the beginning of the function
+    sensitive_label_mapping = {}
+    non_numeric_columns = []
+    
     logger.info("Starting Training...")
 
     # Ensure all data is numeric
@@ -54,6 +57,19 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         sensitive = le.fit_transform(sensitive)
         sensitive_label_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
         logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
+    elif isinstance(sensitive, pd.Series) and sensitive.dtype == 'object':
+        logger.debug("Converting pandas Series sensitive attribute to numeric")
+        le = LabelEncoder()
+        sensitive = le.fit_transform(sensitive)
+        sensitive_label_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+        logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
+    else:
+        # For numeric sensitive attributes, create a basic mapping
+        unique_values = np.unique(sensitive)
+        sensitive_label_mapping = {str(val): int(i) for i, val in enumerate(unique_values)}
+        logger.debug(f"Created mapping for numeric sensitive attribute: {sensitive_label_mapping}")
+
+    
 
     # Validate data
     assert all(X.dtypes != 'object'), "Features contain non-numeric data"
@@ -176,27 +192,40 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 y_pred=y_pred, 
                 sensitive_features=sensitive_test
             )
+
+        min_length = min(len(y_test), len(y_pred), len(sensitive_test))
+        y_test_fair = y_test[:min_length]
+        y_pred_fair = y_pred[:min_length]
+        sensitive_test_fair = sensitive_test[:min_length]
             
-        # Create the MetricFrame without using keyword-only arguments
+        # Create the MetricFrame with properly sized arrays
         metric_frame = MetricFrame(
-            metrics=fairness_metrics,
-            y_true=y_test,
-            y_pred=y_pred,
-            sensitive_features=sensitive_test
+            metrics={
+                'accuracy': accuracy_score,
+                # Other metrics can be added here
+            },
+            y_true=y_test_fair,
+            y_pred=y_pred_fair,
+            sensitive_features=sensitive_test_fair
         )
 
         fairness_metric_key = fairness_metric.replace(" ", "_").lower()
-        if fairness_metric_key in metric_frame.overall:
-            fairness_score = metric_frame.overall[fairness_metric_key]
+        # Calculate fairness metrics separately
+        if fairness_metric.lower().replace(" ", "_") == 'demographic_parity_difference':
+            fairness_score = demographic_parity_difference(
+                y_true=y_test_fair, 
+                y_pred=y_pred_fair, 
+                sensitive_features=sensitive_test_fair
+            )
+        elif fairness_metric.lower().replace(" ", "_") == 'equalized_odds_difference':
+            fairness_score = equalized_odds_difference(
+                y_true=y_test_fair, 
+                y_pred=y_pred_fair, 
+                sensitive_features=sensitive_test_fair
+            )
         else:
-            # Fallback to direct calculation if the metric is not in the frame
-            if fairness_metric_key == 'demographic_parity_difference':
-                fairness_score = demographic_parity_difference(y_test, y_pred, sensitive_features=sensitive_test)
-            elif fairness_metric_key == 'equalized_odds_difference':
-                fairness_score = equalized_odds_difference(y_test, y_pred, sensitive_features=sensitive_test)
-            else:
-                fairness_score = 0.0
-                logger.warning(f"Unknown fairness metric: {fairness_metric}")
+            fairness_score = 0.0
+            logger.warning(f"Unknown fairness metric: {fairness_metric}")
                 
         fairness_reason = f"Fairness score ({fairness_metric}): {fairness_score:.4f}"
 
@@ -309,14 +338,14 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     dashboard_data = create_insights_dashboard(model, X, y, sensitive, X_test, y_test, y_pred, sensitive_test, feature_names)
     
     # Generate visualizations and convert to base64 for JSON serialization
-    viz_raw = generate_visualizations(model, X_test, y_test, y_pred, sensitive_test, feature_names)
-    viz_base64 = {}
-    for name, fig in viz_raw.items():
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        img_str = base64.b64encode(buf.read()).decode('utf-8')
-        viz_base64[name] = img_str
+    # viz_raw = generate_visualizations(model, X_test, y_test, y_pred, sensitive_test, feature_names)
+    # viz_base64 = {}
+    # for name, fig in viz_raw.items():
+    #     buf = io.BytesIO()
+    #     fig.savefig(buf, format='png')
+    #     buf.seek(0)
+    #     img_str = base64.b64encode(buf.read()).decode('utf-8')
+    #     viz_base64[name] = img_str
 
     # logger.debug(f"additional insights: {additional_insights}")
     logger.debug(f"dashboard data: {dashboard_data}")
@@ -340,7 +369,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         # Add insights to results
         'additional_insights': additional_insights,
         'fairness_dashboard': dashboard_data,
-        'visualizations_base64': viz_base64  # Use base64 encoded images
+        
     }
     
     return model, results

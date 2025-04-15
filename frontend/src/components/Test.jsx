@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
+
+
+// progress bar
+import { CheckCircle2, Circle } from 'lucide-react';
 
 const Test = () => {
 
@@ -76,19 +79,28 @@ const Test = () => {
             value: importance
         }));
 
-    // const confusionMatrixData = [
-    //     { name: 'True Negative', value: modelData.confusion_matrix[0][0] },
-    //     { name: 'False Positive', value: modelData.confusion_matrix[0][1] },
-    //     { name: 'False Negative', value: modelData.confusion_matrix[1][0] },
-    //     { name: 'True Positive', value: modelData.confusion_matrix[1][1] }
-    // ];
 
-    // const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+    // progress bar
+    const [currentStep, setCurrentStep] = useState(3);
+
+    const steps = [
+        "Account Setup",
+        "Personal Info",
+        "Contact Details",
+        "Preferences",
+        "Verification",
+        "Document Upload",
+        "Review Details",
+        "Terms Agreement",
+        "Payment Info",
+        "Confirmation"
+    ];
+
 
     return (
         <div className="w-full max-w-6xl mx-auto p-4 bg-white">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div className="h-64">
                     <p>first chart</p>
@@ -102,32 +114,6 @@ const Test = () => {
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-
-
-                {/* <div className="h-64">
-                    <p>2th chart</p>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={confusionMatrixData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={true}
-                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                dataKey="value"
-                            >
-                                {confusionMatrixData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div> */}
-
-
 
                 <div className="h-64">
                     <p>3th chart</p>
@@ -146,8 +132,6 @@ const Test = () => {
                 </div>
 
             </div>
-
-
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -194,8 +178,6 @@ const Test = () => {
 
             </div>
 
-
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div className="h-64">
@@ -210,8 +192,6 @@ const Test = () => {
                     </ResponsiveContainer>
                 </div>
 
-
-
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={groupMetricsData}>
@@ -225,8 +205,6 @@ const Test = () => {
                     </ResponsiveContainer>
                 </div>
 
-
-
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={groupMetricsData}>
@@ -238,8 +216,6 @@ const Test = () => {
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-
-
 
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -255,9 +231,6 @@ const Test = () => {
 
             </div>
 
-
-
-
             <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={featureImportanceData} layout="vertical">
@@ -268,10 +241,54 @@ const Test = () => {
                         <Bar dataKey="value" fill="#8884d8" />
                     </BarChart>
                 </ResponsiveContainer>
+            </div> */}
+
+
+            {/* progress bar */}
+            <div className="h-full w-full p-2 overflow-y-auto bg-gray-50 rounded">
+                <div className="space-y-1">
+                    {steps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                            <div className="flex flex-col items-center">
+                                {index < currentStep ? (
+                                    <CheckCircle2 className="text-green-500 h-5 w-5" />
+                                ) : index === currentStep ? (
+                                    <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                                        {index + 1}
+                                    </div>
+                                ) : (
+                                    <Circle className="text-gray-300 h-5 w-5" />
+                                )}
+
+                                {index < steps.length - 1 && (
+                                    <div className={`w-0.5 h-4 ${index < currentStep ? "bg-green-500" : "bg-gray-200"}`} />
+                                )}
+                            </div>
+
+                            <div className={`text-sm pb-1 ${index === currentStep ? "font-medium text-blue-600" : index < currentStep ? "text-gray-600" : "text-gray-400"}`}>
+                                {step}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-between mt-4">
+                    <button
+                        className="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                        disabled={currentStep === 0}
+                    >
+                        Previous
+                    </button>
+                    <button
+                        className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                        disabled={currentStep === steps.length - 1}
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
-
-
-
         </div>
     );
 };

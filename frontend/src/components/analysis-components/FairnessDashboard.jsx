@@ -75,6 +75,17 @@ const FairnessDashboard = ({ featureImportance }) => {
                 titleColor: 'white',
                 bodyColor: 'white',
                 backgroundColor: 'rgba(0, 0, 0, 0.7)'
+            },
+            datalabels: {
+                color: 'white',
+                anchor: 'center',
+                align: 'center',
+                font: {
+                    weight: 'bold'
+                },
+                formatter: function (value) {
+                    return value.toFixed(2);
+                }
             }
         },
         scales: {
@@ -192,7 +203,8 @@ const FairnessDashboard = ({ featureImportance }) => {
 
             <div className="mb-8">
                 <div className="p-4">
-                    <h2 className="text-xl font-semibold mb-2 text-white">Key Fairness Concerns</h2>
+                    {/* <h2 className="text-xl font-semibold mb-2 text-white">Key Fairness Concerns</h2> */}
+                    <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Key Fairness Concerns:</h4>
                     <ul className="list-disc pl-5 space-y-2 text-white">
                         {Object.keys(demographicFeatures).length > 0 && (
                             <li>
@@ -254,16 +266,17 @@ const FairnessDashboard = ({ featureImportance }) => {
                     </div>
                 )}
 
-                <div className="p-4">
+                {/* <div className="p-4">
 
                     <div className="h-64">
                         <Bar data={topFactorsChartData} options={{ ...options, indexAxis: 'y', plugins: { ...options.plugins, title: { display: true, color: 'white', text: 'Top 10 Most Influential Features' } } }} />
                     </div>
-                </div>
+                </div> */}
             </div>
 
             <div className="p-4 text-white">
-                <h2 className="text-xl font-semibold mb-2">Recommendations</h2>
+                {/* <h2 className="text-xl font-semibold mb-2">Recommendations</h2> */}
+                <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Recommendations:</h4>
                 <ul className="list-disc pl-5 space-y-2">
                     {Object.keys(demographicFeatures).length > 0 && (
                         <li>Consider removing or reducing influence of protected characteristics (e.g., {Object.keys(demographicFeatures).slice(0, 2).join(', ')})</li>

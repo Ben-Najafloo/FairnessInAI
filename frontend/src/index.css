@@ -1,3 +1,18 @@
+
+/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    /* For WebKit browsers (Chrome, Safari, Edge) */
+    .scrollbar-no-buttons::-webkit-scrollbar-button:vertical {
+      display: none !important;
+    }
+  
+    /* For Firefox */
+    .scrollbar-no-buttons {
+      scrollbar-width: thin;
+      
+    }
+  }

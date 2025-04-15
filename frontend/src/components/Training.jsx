@@ -43,7 +43,7 @@ const Training = () => {
                 ? classificationAlgorithms
                 : [];
 
-    const metrics = ['Demographic Parity', 'Equalized Odds', 'Disparate Impact'];
+    const metrics = ['Demographic Parity Difference', 'Equalized Odds Difference', 'Disparate Impact Difference'];
 
 
     const handleManualConfig = () => {
@@ -151,7 +151,7 @@ const Training = () => {
                 <div>
                     {isLoading && (
                         <div className="md:pl-5 w-full">
-                            <div className="bg-gray-800 py-4 px-9 rounded-lg h-[450px]">
+                            <div className="bg-gray-800 py-4 px-9 h-[450px]">
                                 <div style={{ justifyContent: 'center', alignItems: 'center' }}>
                                     <ScaleLoader color="#FFFFFF" loading={true} size={200} />
                                     <p className='text-white'>Training in progress...</p>
@@ -167,7 +167,7 @@ const Training = () => {
 
                 {showFinalConfig && (
                     <div className="md:pl-5 w-full">
-                        <div className="bg-gray-800 py-4 px-9 rounded-lg h-[550px] md:max-h-[550px] overflow-auto">
+                        <div className="bg-gray-800 py-4 px-9 h-[550px] md:max-h-[550px] overflow-auto">
                             <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Final Configuration</h2>
 
                             {showConfigTable && (
@@ -250,8 +250,6 @@ const Training = () => {
                                             )}
                                         </motion.div>
                                     )}
-
-
                                 </div>
                             )}
 
@@ -267,11 +265,11 @@ const Training = () => {
 
                                                     <li>
                                                         <input type="checkbox" id={`${algorithm}-checkbox`} value={algorithm} checked={selectedAlgorithms.includes(algorithm)} onChange={handleAlgorithmChange} class="hidden peer" />
-                                                        <label for={`${algorithm}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                                        <label for={`${algorithm}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                                             <div class="block">
                                                                 <div className='flex'>
                                                                     <div class="w-full">
-                                                                        <div class="text-base mb-3 font-semibold">{algorithm}</div>
+                                                                        <div class="text-sm mb-3">{algorithm}</div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -288,11 +286,11 @@ const Training = () => {
                                                 {metrics.map((metric) => (
                                                     <li>
                                                         <input type="checkbox" id={`${metric}-checkbox`} value={metric} checked={selectedFairnessMetrics.includes(metric)} onChange={handleFairnessMetricChange} class="hidden peer" />
-                                                        <label for={`${metric}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                                        <label for={`${metric}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                                             <div class="block">
                                                                 <div className='flex'>
                                                                     <div class="w-full">
-                                                                        <div class="text-base mb-3 font-semibold">{metric}</div>
+                                                                        <div class="text-sm mb-3">{metric}</div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -328,7 +326,7 @@ const Training = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-4 mt-7">
+                                        <div className="flex items-center space-x-4 mt-9">
                                             <button onClick={closeManualConfig} className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                                                 Back
                                             </button>
