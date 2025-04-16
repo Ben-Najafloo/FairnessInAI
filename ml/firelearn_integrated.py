@@ -41,7 +41,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     # Ensure all data is numeric
     non_numeric_columns = X.select_dtypes(include=['object']).columns
     if len(non_numeric_columns) > 0:
-        logger.debug(f"Non-numeric columns in X: {list(non_numeric_columns)}")
+        # logger.debug(f"Non-numeric columns in X: {list(non_numeric_columns)}")
         for column in non_numeric_columns:
             X[column] = LabelEncoder().fit_transform(X[column])
 
@@ -56,18 +56,18 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
         le = LabelEncoder()
         sensitive = le.fit_transform(sensitive)
         sensitive_label_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
-        logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
+        # logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
     elif isinstance(sensitive, pd.Series) and sensitive.dtype == 'object':
         logger.debug("Converting pandas Series sensitive attribute to numeric")
         le = LabelEncoder()
         sensitive = le.fit_transform(sensitive)
         sensitive_label_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
-        logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
+        # logger.debug(f"Sensitive attribute mapping: {sensitive_label_mapping}")
     else:
         # For numeric sensitive attributes, create a basic mapping
         unique_values = np.unique(sensitive)
         sensitive_label_mapping = {str(val): int(i) for i, val in enumerate(unique_values)}
-        logger.debug(f"Created mapping for numeric sensitive attribute: {sensitive_label_mapping}")
+        # logger.debug(f"Created mapping for numeric sensitive attribute: {sensitive_label_mapping}")
 
     
 
@@ -96,9 +96,9 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     )
 
     # Log dataset shapes
-    logger.debug(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
-    logger.debug(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
-    logger.debug(f"sensitive_train shape: {sensitive_train.shape}, sensitive_test shape: {sensitive_test.shape}")
+    # logger.debug(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    # logger.debug(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+    # logger.debug(f"sensitive_train shape: {sensitive_train.shape}, sensitive_test shape: {sensitive_test.shape}")
 
     # Select model based on algorithm choice
     if algorithm == 'TPOT':
@@ -240,7 +240,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 group_pred_rate = np.mean(y_pred[group_mask])
                 prediction_rates[f"group_{val}"] = float(group_pred_rate)
                 
-            logger.info(f"Perfect fairness achieved. Prediction rates by group: {prediction_rates}")
+            # logger.info(f"Perfect fairness achieved. Prediction rates by group: {prediction_rates}")
             
             # Attempt to identify feature importance for fairness
             try:
@@ -252,7 +252,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                                              if i < len(selected_features)}
                     top_features = sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)[:3]
                     top_features_str = ", ".join([f"{name}: {round(imp, 4)}" for name, imp in top_features])
-                    logger.info(f"Feature importances that contribute to fair predictions: {feature_importance_dict}")
+                    # logger.info(f"Feature importances that contribute to fair predictions: {feature_importance_dict}")
                     fairness_reason = f"Perfect fairness (score={fairness_score:.4f}). Key features: {top_features_str}"
                 elif hasattr(model, 'coef_'):
                     # For linear models
@@ -336,19 +336,9 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     
     # Create comprehensive dashboard
     dashboard_data = create_insights_dashboard(model, X, y, sensitive, X_test, y_test, y_pred, sensitive_test, feature_names)
-    
-    # Generate visualizations and convert to base64 for JSON serialization
-    # viz_raw = generate_visualizations(model, X_test, y_test, y_pred, sensitive_test, feature_names)
-    # viz_base64 = {}
-    # for name, fig in viz_raw.items():
-    #     buf = io.BytesIO()
-    #     fig.savefig(buf, format='png')
-    #     buf.seek(0)
-    #     img_str = base64.b64encode(buf.read()).decode('utf-8')
-    #     viz_base64[name] = img_str
 
     # logger.debug(f"additional insights: {additional_insights}")
-    logger.debug(f"dashboard data: {dashboard_data}")
+    # logger.debug(f"dashboard data: {dashboard_data}")
     
     # Your existing code to create results...
     results = {

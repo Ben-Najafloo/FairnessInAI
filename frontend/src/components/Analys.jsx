@@ -97,7 +97,7 @@ const Analys = () => {
     }
 
     // Extract the evaluation object and message from the result
-    const { evaluation, message } = result;
+    const { evaluation, message, do_balance_data } = result;
     const {
         fairness_score,
         performance_score,
@@ -119,8 +119,8 @@ const Analys = () => {
         group_metrics,
         roc_auc,
         roc_curve,
-        selection_rate_disparity
-
+        selection_rate_disparity,
+        weighted_accuracy
     } = additional_insights || {};
 
     // confusion matrix
@@ -343,7 +343,7 @@ const Analys = () => {
                                 <div className="min-w-0 flex-1 mt-5">
                                     <div className="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
                                         <div className="flex items-center text-sm text-gray-200">
-                                            <svg className="mr-1.5 size-5 shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                                            <svg className="mr-1.5 size-5 shrink-0 text-gray-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
                                                 <path fill-rule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clip-rule="evenodd" />
                                             </svg>
                                             Done on {currentDate}
@@ -353,7 +353,7 @@ const Analys = () => {
                                 <div className="min-w-0 flex-1 mt-4">
                                     <div className="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
                                         <div className="flex items-center text-sm text-gray-200">
-                                            <SiThealgorithms className="mr-1.5 size-5 shrink-0 text-gray-400" />
+                                            <SiThealgorithms className="mr-1.5 size-5 shrink-0 text-gray-200" />
                                             Algorithm:  &nbsp;<span className="text-sm w-64 text-gray-900 dark:text-white"> {algorithm}</span>
                                         </div>
                                     </div>
@@ -373,6 +373,13 @@ const Analys = () => {
                                     <div className="text-sm w-32 text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Overall correctness of predictions compared to actual outcomes.</div>
                                 </div>
+                                {do_balance_data && (
+                                    <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
+                                        <div className="text-sm w-48 text-gray-900 dark:text-white">Wighted Accuracy:</div>
+                                        <div className="text-sm w-32 text-gray-900 dark:text-white">{weighted_accuracy !== undefined ? weighted_accuracy.toFixed(2) : 'N/A'}</div>
+                                        <div className="text-sm text-gray-900 dark:text-white">Adjusts for class imbalance by valuing the correct classification of different classes differently.</div>
+                                    </div>
+                                )}
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Precision Score:</div>
                                     <div className="text-sm w-32 text-gray-900 dark:text-white">{precision !== undefined ? precision.toFixed(2) : 'N/A'}</div>

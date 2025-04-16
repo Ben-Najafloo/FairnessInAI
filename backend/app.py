@@ -6,6 +6,10 @@ import logging
 from flask_cors import CORS
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+
+# balancing
+from sklearn.utils import resample 
+
 # from ml.ml_functions import preprocess_data, train_model_with_fairness
 # from ml.tpot_ml import train_model_with_fairness
 from ml.firelearn_integrated import train_model_with_fairness
@@ -133,16 +137,22 @@ def get_missing_data(df):
     # logging.debug(f"Missing data: {missing_data}")
     return missing_data
 
+logging.info("get missing data.")
+
 def get_data_types(df):
     """Returns the data types of each column."""
     data_types = {col: str(dtype) for col, dtype in df.dtypes.items()}
     # logging.debug(f"Data types: {data_types}")
     return data_types
 
+logging.info("get data type.")
+
 def get_statistics(df):
     """Returns basic statistics for numerical columns."""
     stats = df.describe().round(2).to_dict()
     return stats
+
+logging.info("get statistics.")
 
 def detect_outliers(df):
     """Detects outliers using the Z-score method."""
@@ -155,6 +165,8 @@ def detect_outliers(df):
     # logging.debug(f"Outliers detected: {outlier_summary}")
     return outlier_summary
 
+logging.info("Detects outliers using the Z-score method.")
+
 def get_class_distribution(df, label_column):
     """Returns the distribution of classes in the label column."""
     if label_column in df.columns:
@@ -163,6 +175,8 @@ def get_class_distribution(df, label_column):
         return class_dist
     return None
 
+logging.info("Returns the distribution of classes in the label column.")
+
 def get_sensitive_column_distribution(df, sensitive_column):
     """Returns the distribution of the sensitive column."""
     if sensitive_column in df.columns:
@@ -170,6 +184,8 @@ def get_sensitive_column_distribution(df, sensitive_column):
         # logging.debug(f"Sensitive column distribution: {sensitive_dist}")
         return sensitive_dist
     return None
+
+logging.info("Returns the distribution of the sensitive column.")
 
 # Missing Data Handling Function
 def handle_missing_data(df, strategy="mean"):
@@ -182,6 +198,27 @@ def handle_missing_data(df, strategy="mean"):
             df[col].fillna(df[col].mode()[0], inplace=True)
 
     return df
+
+logging.info("Missing Data Handling Function.")
+
+# balancing 
+def balance_classes(df, label_column):
+    
+    classes = df[label_column].unique()
+    max_count = df[label_column].value_counts().max()
+
+    balanced_df = pd.DataFrame()
+    for cls in classes:
+        cls_samples = df[df[label_column] == cls]
+        balanced_cls = resample(cls_samples,
+                                replace=True,         # sample with replacement
+                                n_samples=max_count,  # match max class count
+                                random_state=42)
+        balanced_df = pd.concat([balanced_df, balanced_cls])
+
+    return balanced_df.sample(frac=1, random_state=42).reset_index(drop=True)  # shuffle
+
+logging.info("Balancing.")
 
 @app.route('/train', methods=['POST'])
 def train_model():
@@ -224,6 +261,13 @@ def train_model():
         class_distribution_before_balancing = get_class_distribution(data, label_column)
         logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
 
+        # balancing
+        if (do_balance_data):
+            balanced = balance_classes(data, label_column)
+            class_distribution_after_balancing = get_class_distribution(balanced, label_column)
+            logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
+            
+
         # Preprocess data for training
         logging.info("Preprocessing data for training")
         X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
@@ -246,8 +290,10 @@ def train_model():
             'message': 'Model trained successfully',
             'evaluation': evaluation_results,
             'class_distribution_before_balancing': class_distribution_before_balancing,
-
+            'do_balance_data' : do_balance_data
         }
+        if (do_balance_data):
+            response_data['class_distribution_after_balancing'] = class_distribution_after_balancing
         
         # Add problem-specific metrics to response
         if problem_type.lower() == 'regression':
