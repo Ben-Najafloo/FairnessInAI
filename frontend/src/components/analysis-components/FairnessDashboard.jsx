@@ -266,12 +266,6 @@ const FairnessDashboard = ({ featureImportance }) => {
                     </div>
                 )}
 
-                {/* <div className="p-4">
-
-                    <div className="h-64">
-                        <Bar data={topFactorsChartData} options={{ ...options, indexAxis: 'y', plugins: { ...options.plugins, title: { display: true, color: 'white', text: 'Top 10 Most Influential Features' } } }} />
-                    </div>
-                </div> */}
             </div>
 
             <div className="p-4 text-white">

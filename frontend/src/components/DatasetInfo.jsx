@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import { BsCaretDownFill } from "react-icons/bs";
@@ -27,8 +27,17 @@ const DatasetInfo = () => {
     const [doHandleMissData, setDoHandleMissData] = useState(false);
     const [doBalanceData, setDoBalanceData] = useState(false);
 
+    // Safe redirect if no data
+    useEffect(() => {
+        if (!datasetInfo) {
+            navigate("/");
+        }
+    }, [datasetInfo, navigate]);
+
+
+
+    // Don't proceed with rendering if datasetInfo is not available
     if (!datasetInfo) {
-        navigate("/");
         return null;
     }
 
@@ -36,11 +45,20 @@ const DatasetInfo = () => {
     const dataTypeView = () => {
         setDataTypeIsExpanded(!dataTypeIsExpanded);
     };
+
     const basicStatisticsView = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
 
-    const { label_column, sensitive_column, sensitive_column2, problem_type, data_shape, dataset_summary, dropped_column, label_type } = datasetInfo;
+    // Safely access properties (with default values)
+    const label_column = datasetInfo?.label_column || '';
+    const sensitive_column = datasetInfo?.sensitive_column || '';
+    const sensitive_column2 = datasetInfo?.sensitive_column2 || '';
+    const problem_type = datasetInfo?.problem_type || '';
+    const data_shape = datasetInfo?.data_shape || {};
+    const dataset_summary = datasetInfo?.dataset_summary || {};
+    const dropped_column = datasetInfo?.dropped_column || [];
+    const label_type = datasetInfo?.label_type || '';
 
     const handleConfirmation = () => {
         setShowConfirmationModal(!showConfirmationModal);
@@ -49,10 +67,10 @@ const DatasetInfo = () => {
 
     const handleMissingData = () => {
         setShowMissingData(!showMissingData);
-    }
+    };
 
     const handleStartTraining = () => {
-        setProgress(7);
+        setProgress(5);
         console.log("Passing state:", {
             doHandleMissData: doHandleMissData,
             doBalanceData: doBalanceData
@@ -66,6 +84,7 @@ const DatasetInfo = () => {
             }
         });
     };
+
 
     //Histogram for basic statistics
     ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
@@ -445,7 +464,7 @@ const DatasetInfo = () => {
                                 </div>
                                 {/* Class Distribution */}
                                 <div className="my-6 h-48">
-                                    {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
+                                    {dataset_summary && dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                         // Check if any column has missing values greater than 0
                                         Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                             <ul className="text-gray-900">
@@ -464,9 +483,10 @@ const DatasetInfo = () => {
                                         <span className="text-gray-800"> No missing data detected.</span>
                                     )}
 
-                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
-                                        <p className="mt-4 text-gray-800">According to our analysis, In the dataset there are some missing data. Would you like to impute?</p>
-                                    )}
+                                    {dataset_summary && dataset_summary.missing_data &&
+                                        Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
+                                            <p className="mt-4 text-gray-800">According to our analysis, In the dataset there are some missing data. Would you like to impute?</p>
+                                        )}
                                 </div>
 
                                 <div className="flex justify-center items-center space-x-4">
@@ -474,7 +494,7 @@ const DatasetInfo = () => {
                                         Cancel the Process
                                     </button>
 
-                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
+                                    {dataset_summary && dataset_summary.missing_data && Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                         <button
                                             onClick={handleConfirmation}
                                             className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300"
@@ -557,7 +577,7 @@ const DatasetInfo = () => {
                                     <div className="block">
                                         <VscEmptyWindow className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Missing Data:&nbsp;
-                                            {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
+                                            {dataset_summary && dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                                 // Check if any column has missing values greater than 0
                                                 Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                                     <ul className="text-gray-100">
@@ -575,6 +595,7 @@ const DatasetInfo = () => {
                                             ) : (
                                                 <span className="text-gray-100"> No missing data detected.</span>
                                             )}
+
                                         </div>
                                     </div>
                                 </label>
@@ -606,7 +627,7 @@ const DatasetInfo = () => {
                                     <div className="block">
                                         <IoAnalyticsOutline className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Detected Outliers' number:<br />
-                                            {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
+                                            {dataset_summary && dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
                                                 <ul className="text-gray-100">
                                                     {Object.entries(dataset_summary.outliers).map(([col, count]) => (
                                                         <li key={col}>
@@ -621,13 +642,6 @@ const DatasetInfo = () => {
                                     </div>
                                 </label>
                             </li>
-
-
-
-
-
-
-
                         </ul>
 
                         {/* Class Distribution */}
@@ -650,34 +664,38 @@ const DatasetInfo = () => {
                                     <div className="flex items-center justify-center">
                                         <div className="container mx-auto p-4">
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                {Object.entries(dataset_summary.statistics)
-                                                    .slice(0, basicStatisticsIsExpanded ? undefined : 4)
-                                                    .map(([col, stats]) => (
-                                                        <div
-                                                            key={col}
-                                                            className="px-1 py-1 border text-black text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                        >
-                                                            <Histogram column={col} stats={stats} />
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {Object.entries(stats).map(([stat, value]) => (
-                                                                    <div
-                                                                        key={`${col}-${stat}`} // Unique key for each stat
-                                                                        className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                                    >
-                                                                        <div className="text-sm mb-1 text-gray-700">
-                                                                            {stat}: {value}
+                                                {dataset_summary && dataset_summary.statistics ? (
+                                                    Object.entries(dataset_summary.statistics)
+                                                        .slice(0, basicStatisticsIsExpanded ? undefined : 4)
+                                                        .map(([col, stats]) => (
+                                                            <div
+                                                                key={col}
+                                                                className="px-1 py-1 border text-black text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                            >
+                                                                <Histogram column={col} stats={stats} />
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {stats && Object.entries(stats).map(([stat, value]) => (
+                                                                        <div
+                                                                            key={`${col}-${stat}`}
+                                                                            className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                                        >
+                                                                            <div className="text-sm mb-1 text-gray-700">
+                                                                                {stat}: {value}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                ))}
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        ))
+                                                ) : (
+                                                    <p className="text-gray-100">No statistics available.</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button onClick={basicStatisticsView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
+                            <button onClick={basicStatisticsView} className="hover:font-bold px-5 inline-flex items-center text-sm">
                                 {basicStatisticsIsExpanded ? (
                                     <>
                                         <span>Show Less</span>
@@ -695,13 +713,12 @@ const DatasetInfo = () => {
 
 
                         {/* Data Types */}
-                        <div className=" text-md text-blue-300 mt-11">
+                        <div className="text-md text-blue-300 mt-11">
                             <h4>Data Types:</h4>
 
-                            {dataset_summary.data_types && (
+                            {dataset_summary && dataset_summary.data_types ? (
                                 <div className="flex items-center justify-center">
                                     <div className="container mx-auto p-4">
-                                        {/*  */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                                             {Object.entries(dataset_summary.data_types)
                                                 .slice(0, dataTypeIsExpanded ? undefined : 4)
@@ -713,17 +730,16 @@ const DatasetInfo = () => {
                                                         className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                                     >
                                                         <div className="text-sm mb-1 text-gray-700">{col} : {dtype}</div>
-
                                                     </motion.div>
                                                 ))}
                                         </div>
-
                                     </div>
                                 </div>
-
+                            ) : (
+                                <p className="text-gray-100">No data types available.</p>
                             )}
 
-                            <button onClick={dataTypeView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
+                            <button onClick={dataTypeView} className="hover:font-bold px-5 inline-flex items-center text-sm">
                                 {dataTypeIsExpanded ? (
                                     <>
                                         <span>Show Less</span>

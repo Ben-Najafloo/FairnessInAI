@@ -96,9 +96,9 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     )
 
     # Log dataset shapes
-    # logger.debug(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
-    # logger.debug(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
-    # logger.debug(f"sensitive_train shape: {sensitive_train.shape}, sensitive_test shape: {sensitive_test.shape}")
+    logger.debug(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    logger.debug(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+    logger.debug(f"sensitive_train shape: {sensitive_train.shape}, sensitive_test shape: {sensitive_test.shape}")
 
     # Select model based on algorithm choice
     if algorithm == 'TPOT':
@@ -240,7 +240,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                 group_pred_rate = np.mean(y_pred[group_mask])
                 prediction_rates[f"group_{val}"] = float(group_pred_rate)
                 
-            # logger.info(f"Perfect fairness achieved. Prediction rates by group: {prediction_rates}")
+            logger.info(f"Perfect fairness achieved. Prediction rates by group: {prediction_rates}")
             
             # Attempt to identify feature importance for fairness
             try:
@@ -252,7 +252,7 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
                                              if i < len(selected_features)}
                     top_features = sorted(feature_importance_dict.items(), key=lambda x: x[1], reverse=True)[:3]
                     top_features_str = ", ".join([f"{name}: {round(imp, 4)}" for name, imp in top_features])
-                    # logger.info(f"Feature importances that contribute to fair predictions: {feature_importance_dict}")
+                    logger.info(f"Feature importances that contribute to fair predictions: {feature_importance_dict}")
                     fairness_reason = f"Perfect fairness (score={fairness_score:.4f}). Key features: {top_features_str}"
                 elif hasattr(model, 'coef_'):
                     # For linear models
@@ -337,8 +337,8 @@ def train_model_with_fairness(X, y, sensitive, algorithm, fairness_metric, perfo
     # Create comprehensive dashboard
     dashboard_data = create_insights_dashboard(model, X, y, sensitive, X_test, y_test, y_pred, sensitive_test, feature_names)
 
-    # logger.debug(f"additional insights: {additional_insights}")
-    # logger.debug(f"dashboard data: {dashboard_data}")
+    logger.debug(f"additional insights: {additional_insights}")
+    logger.debug(f"dashboard data: {dashboard_data}")
     
     # Your existing code to create results...
     results = {

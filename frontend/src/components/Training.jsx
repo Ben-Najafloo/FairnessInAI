@@ -103,7 +103,7 @@ const Training = () => {
 
             const result = response.data;
             console.log('Training Result:', result);
-            setProgress(8);
+            setProgress(6);
             navigate('/analys', { state: { result } });
         } catch (error) {
             console.error('Error during training:', error);
@@ -135,7 +135,7 @@ const Training = () => {
         try {
             const response = await axios.post("http://localhost:5000/train", formData);
             const result = response.data;
-            setProgress(8);
+            setProgress(6);
             console.log('Training Result:', result);
             setIsLoading(false); // Stop loading after success
             navigate('/analys', { state: { result } });

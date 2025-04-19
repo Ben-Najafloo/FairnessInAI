@@ -49,13 +49,29 @@ def upload_file():
     logging.info(f"Processing file: {file.filename}")
 
     try:
-        # Read the dataset
-        data = pd.read_csv(file)
+        try:
+            data = pd.read_csv(file)  # default
+        except Exception:
+            file.seek(0)
+            try:
+                data = pd.read_csv(file, sep=';', encoding='utf-8')
+            except Exception:
+                file.seek(0)
+                data = pd.read_csv(file, sep='\t', encoding='ISO-8859-1')
 
-        # Identify and drop a unique ID column
+        # Clean column names
+        data.columns = data.columns.str.strip().str.replace('\n', '', regex=False)
+
+        if data.empty:
+            return jsonify({'error': 'Uploaded file is empty or unreadable.'}), 400
+
+        # Check for all-null columns or rows and drop them
+        data = data.dropna(axis=1, how='all').dropna(axis=0, how='all')
+
+        # Drop fully unique ID column (likely index)
         dropped_column = None
         for col in data.columns:
-            if data[col].nunique() == len(data):  # Check uniqueness
+            if data[col].nunique(dropna=False) == len(data):
                 dropped_column = col
                 data = data.drop(columns=[col])
                 logging.info(f"Dropped ID column: {col}")
@@ -174,6 +190,8 @@ def get_class_distribution(df, label_column):
         # logging.debug(f"Class distribution: {class_dist}")
         return class_dist
     return None
+
+
 
 logging.info("Returns the distribution of classes in the label column.")
 

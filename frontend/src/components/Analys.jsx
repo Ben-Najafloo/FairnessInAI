@@ -5,9 +5,10 @@ import { FaCheck, FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart } from "react-icons/md";
 import { SiThealgorithms } from "react-icons/si";
-
+import { GrDocumentConfig } from "react-icons/gr";
 import FairnessDashboard from './analysis-components/FairnessDashboard';
 import FeatureImportanceChart from './analysis-components/FeatureImportanceChart';
+
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import { Bar } from 'react-chartjs-2';
@@ -29,7 +30,7 @@ const Analys = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setProgress(9);
+            setProgress(7);
         }, 3000);
 
         return () => clearTimeout(timer);
@@ -117,11 +118,13 @@ const Analys = () => {
         f1_score,
         feature_importance,
         group_metrics,
+        by_group_metrics,
         roc_auc,
         roc_curve,
         selection_rate_disparity,
         weighted_accuracy
     } = additional_insights || {};
+
 
     // confusion matrix
     const trueNegative = confusion_matrix[0][0];
@@ -146,17 +149,18 @@ const Analys = () => {
     ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
     const MetricsBarChart = () => {
         const data = {
-            labels: ['Accuracy', 'Precision', 'Recall', 'Fairness', 'F1 Score', 'ROC AUC'],
+            labels: ['Accuracy', 'Precision', 'Recall', 'Fairness', 'F1 Score', 'ROC AUC', 'Weighted Accuracy'],
             datasets: [
                 {
-                    data: [performance_score, precision, recall, fairness_score, f1_score, roc_auc],
+                    data: [performance_score, precision, recall, fairness_score, f1_score, roc_auc, weighted_accuracy],
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.7)',
                         'rgba(75, 192, 192, 0.7)',
                         'rgba(153, 102, 255, 0.7)',
                         'rgba(255, 159, 64, 0.7)',
                         'rgba(54, 162, 235, 0.7)',
-                        'rgba(75, 192, 192, 0.7)'
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
                     ],
                     borderColor: [
                         'rgba(54, 162, 235, 1)',
@@ -164,7 +168,8 @@ const Analys = () => {
                         'rgba(153, 102, 255, 1)',
                         'rgba(255, 159, 64, 1)',
                         'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)'
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
                     ],
                     borderWidth: 1,
                 },
@@ -269,15 +274,21 @@ const Analys = () => {
 
             <div className="flex justify-end items-end w-full">
                 <div className="flex lg:ml-4 lg:mt-0">
+                    <span className="hidden sm:block mr-3">
+                        <Link to="/training"
+                            className="text-white flex border border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
+                            <GrDocumentConfig className="mr-3 text-xl" />Reconfiguration
+                        </Link>
+                    </span>
                     <span className="hidden sm:block">
                         <Link to="/upload"
-                            className="text-white flex border-2 border-white hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                            className="text-white flex border border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
                             <MdAddchart className="mr-3 text-xl" />New Assessment
                         </Link>
                     </span>
 
                     <span className="ml-3 hidden sm:block">
-                        <button onClick={handleSharing} className="text-blue-300 flex border-2 border-blue-300 hover:bg-primary-800 hover:ring-4 hover:ring-primary-300 font-medium rounded text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:ring-primary-800">
+                        <button onClick={handleSharing} className="text-blue-300 flex border border-blue-300  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
                             Get Report <FaRegShareFromSquare className="ml-3 text-xl" />
                         </button>
                     </span>

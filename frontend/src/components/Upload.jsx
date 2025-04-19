@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ProgressContext } from '../ProgressContext';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
@@ -6,6 +6,7 @@ import Papa from 'papaparse';
 import { FaArrowRightLong, FaArrowLeftLong } from "react-icons/fa6";
 import { FaFileUpload, FaAmericanSignLanguageInterpreting } from "react-icons/fa";
 import { GiHumanTarget } from "react-icons/gi";
+import { IoIosInformationCircle } from "react-icons/io";
 
 import regImg from '../img/reg2.png';
 import claImg from '../img/class2.png';
@@ -14,16 +15,15 @@ const Upload = () => {
     const { setProgress } = useContext(ProgressContext);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        setProgress(2);
-    }, [setProgress]);
-
     //dataForm values
     const [datasetFile, setDatasetFile] = useState(null);
     const [labelColumn, setLabelColumn] = useState('');
     const [sensitiveColumn, setSensitiveColumn] = useState(null);
     const [sensitiveColumn2, setSensitiveColumn2] = useState(null);
     const [problemTypeColumn, setProblemTypeColumn] = useState('');
+    //help popup
+    const [helpPopUpTarget, setHelpPopUpTarget] = useState(false);
+    const [showHelpTarget, setShowHelpTarget] = useState(false);
 
     // steps
     const [fileName, setFileName] = useState('');
@@ -45,6 +45,32 @@ const Upload = () => {
     const [sensitiveCurrentPage, setSensitiveCurrentPage] = useState(1);
     const totalPages = Math.ceil(columns.length / itemsPerPage);
 
+    const timeoutId = useRef(null); // Use useRef to hold the timeout ID
+
+    useEffect(() => {
+        // Set up the timeout
+        timeoutId.current = setTimeout(() => {
+            if (fileName) {
+                console.log('6 seconds passed and fileName is truthy');
+                setHelpPopUpTarget(true);
+            }
+        }, 6000);
+
+        // Cleanup function: This runs when the component unmounts or when
+        // the dependencies in the dependency array change.
+        return () => {
+            if (timeoutId.current) {
+                console.log('Timeout cleared');
+                clearTimeout(timeoutId.current);
+            }
+        };
+    }, [fileName]); // Re-run effect whenever fileName changes
+
+    // Function to update fileName (for demonstration purposes)
+    const handleFileNameChange = (newFileName) => {
+        setFileName(newFileName);
+    };
+
     const currentLabels = columns.slice(
         (targetCurrentPage - 1) * itemsPerPage,
         targetCurrentPage * itemsPerPage
@@ -54,6 +80,11 @@ const Upload = () => {
         sensitiveCurrentPage * itemsPerPage
     );
 
+    const handleTargetHelp = () => {
+        setHelpPopUpTarget(false);
+        setShowHelpTarget(true);
+    }
+
     const handleSensitiveColumn = () => {
         // Ensure label and sensitive columns are selected
         if (!labelColumn) {
@@ -62,7 +93,7 @@ const Upload = () => {
         } else {
             setFileName(false);
             setSensitiveCulumnBox(true);
-
+            setHelpPopUpTarget(false);
             setLabelErrorMessage('');
 
         }
@@ -96,7 +127,6 @@ const Upload = () => {
             setProblemType(true);
             console.log(sensitiveColumn, sensitiveColumn2);
             setSensitiveErrorMessage('');
-
         }
     }
 
@@ -104,11 +134,9 @@ const Upload = () => {
         setFileName(true);
         setSensitiveCulumnBox(false);
         setProblemType(false);
-
     }
 
     const backToSensitiveColumn = () => {
-
         setProblemType(false);
         setSensitiveCulumnBox(true);
     }
@@ -125,17 +153,22 @@ const Upload = () => {
                 console.log('is an Invalid file format')
                 setErrorMessage(`${fileExtension} is an Invalid file format. Please upload a file in one of the following formats: ${allowedFormats.join(", ")}`);
                 console.log(errorMessage)
-                setDatasetFile(null); // Reset the dataset file state
-                setFileName(""); // Clear the file name display
+                setDatasetFile(null);
+                setFileName("");
                 setColumns([]);
                 return;
             }
-
-            // If valid, clear error and set the file
-            setErrorMessage(''); // Clear any previous error messages
+            setErrorMessage('');
             setDatasetFile(selectedFile);
             setFileName(selectedFile.name);
             setProgress(3);
+            setTimeout(() => {
+                if (fileName) {
+                    console.log('6 seconds passed')
+                    setHelpPopUpTarget(true);
+                }
+            }, 6000);
+
 
             // Read and parse the CSV file to extract column names
             const reader = new FileReader();
@@ -191,7 +224,7 @@ const Upload = () => {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             // console.log(response.data);
-            setErrorMessage(''); // Clear any previous error messages
+            setErrorMessage(''); // Clear any previous error messages 
 
             navigate("/dataset-info", { state: { datasetInfo: response.data } });
             setProgress(4); // Move to the next step in your flow
@@ -203,11 +236,63 @@ const Upload = () => {
 
     return (
         <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
+            {helpPopUpTarget && (
+                <div id="deleteModal" tabIndex="-1" ariaHidden="true" className="overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
+                    <div className="relative p-4 w-full max-w-md h-full md:h-auto">
 
+                        <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                            <button type="button" onClick={() => { setHelpPopUpTarget(false) }} className="text-gray-200 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                                <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+                                <span className="sr-only">Do you need guidance to select a proper TARGET VALUE?</span>
+                            </button>
+                            <IoIosInformationCircle className="text-gray-200 w-11 h-11 mb-3.5 mx-auto" />
+                            <p className="mb-5 text-gray-200">Would you like some help choosing an appropriate <br /> TARGET LABLE?</p>
+                            <div className="flex justify-center items-center space-x-4">
+                                <button type="submit" onClick={handleTargetHelp} className="text-green-500 flex hover:text-green-500 border border-green-500 hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded-lg text-base px-5 py-2 text-center">
+                                    Yes, I need
+                                </button>
+                                <button type="button" onClick={() => { setHelpPopUpTarget(false) }} className="text-white flex hover:text-white border border-white hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded-lg text-base px-5 py-2 text-center">
+                                    No, I am fine
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showHelpTarget && (
+                <div id="deleteModal" tabIndex="-1" ariaHidden="true" className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
+                    <div className="relative p-4 w-full max-w-md h-full md:h-auto">
+
+                        <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                            <button type="button" onClick={() => { setShowHelpTarget(false) }} className="text-gray-200 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                                <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+                                <span className="sr-only">Do you need guidance to select a proper TARGET VALUE?</span>
+                            </button>
+                            <GiHumanTarget className="text-gray-200 w-11 h-11 mb-3.5 mx-auto" />
+                            <p className="mb-4 text-gray-200 text-left">
+                                <span className="font-semibold">Target Label: The Outcome We Care About </span> <br />
+
+                                Think of the target label as the focal point of your analysis. It's the variable that your model is trying to predict or that you're examining for potential disparities across different groups.<br />
+
+                                <span className="font-semibold">Defining What "Fairness" Means in Context: </span>The choice of the target label directly shapes how you define and measure fairness. For instance:
+
+                                If your target label is "loan approval," fairness might mean that equally qualified individuals, regardless of their race or gender, have a similar probability of being approved.
+                            </p>
+                            <div className="flex justify-center items-center space-x-4">
+                                <button type="button" onClick={() => { setShowHelpTarget(false) }} className="text-green-500 flex hover:text-green-500 border border-green-500 hover:bg-black focus:ring-4 focus:outline-none focus:ring-black font-medium rounded-lg text-base px-5 py-2 text-center">
+                                    Ok
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {!datasetFile && (
                 <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
                     <label>
                         <div className="flex relative w-ful h-full pb-9 flex-col items-center justify-center border-2 border-green-500 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 dark:text-white hover:bg-gray-100 dark:border-green-600 dark:hover:border-gray-500">
+
                             <div className="relative items-center  justify-center">
                                 {/* Conditionally render elements based on datasetFile state */}
                                 <div className='text-base pt-8 text-center text-gray-300 relative items-center justify-center'>
@@ -221,7 +306,18 @@ const Upload = () => {
                                             <span className="font-semibold">Click to upload</span> or drag and drop
                                         </p>
                                     ) : (<>
-                                        <p>Load the Dataset (Please upload in <span className='font-bold'> CSV, JSON, XLS, XLSX </span> format) </p>
+                                        <p>
+                                            {/* Support different CSV encodings (some users might upload with utf-16, ISO-8859-1, etc.)<br />
+
+                                            Try common separators (e.g., ,, ;, \t) in case users upload with non-standard delimiters.<br />
+
+                                            Clean column names (strip whitespace, remove newline chars).<br />
+
+                                            Handle edge-case object columns more gently (like mixed types).<br />
+
+                                            Add fallback if headers are missing (prevent crash if file has no headers).<br /><br /><br /> */}
+                                        </p>
+                                        <p>Load the Dataset (Please upload in <span className='font-bold'> CSV, JSON, XLS, </span> or <span className='font-bold'>XLSX </span> format) </p>
                                         <br />
                                         <FaFileUpload className="w-8 h-8 mb-5 text-center m-auto" />
                                         <p className="mb-7 ">
@@ -261,7 +357,7 @@ const Upload = () => {
                                             Selected file:
                                             <strong> {fileName}</strong>
                                         </span> <br />
-                                        <GiHumanTarget class="w-9 h-9 absolute top-2 right-9" />
+                                        <GiHumanTarget className="w-9 h-9 absolute top-2 right-9" />
                                         Now set
                                         <span className='italic font-bold text-lg'> the Target Label </span>
                                         to perform ML model
@@ -277,10 +373,10 @@ const Upload = () => {
                                                         value={col}
                                                         onChange={(e) => setLabelColumn(e.target.value)}
                                                         checked={labelColumn === col}
-                                                        class="hidden peer" />
-                                                    <label htmlFor={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
-                                                        <div class="block">
-                                                            <div class="w-full text-base">{col}</div>
+                                                        className="hidden peer" />
+                                                    <label htmlFor={col} className="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                        <div className="block">
+                                                            <div className="w-full text-base">{col}</div>
                                                         </div>
                                                     </label>
                                                 </div>
@@ -288,14 +384,14 @@ const Upload = () => {
                                         </div>
 
                                         {columns.length > itemsPerPage && (
-                                            <div class="flex flex-col mt-5">
-                                                <div class="inline-flex justify-end mt-2 xs:mt-0 text-sm">
+                                            <div className="flex flex-col mt-5">
+                                                <div className="inline-flex justify-end mt-2 xs:mt-0 text-sm">
 
                                                     <button
                                                         onClick={() => setTargetCurrentPage((prev) => Math.max(prev - 1, 1))}
                                                         disabled={targetCurrentPage === 1}
-                                                        class="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                                        <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                        className="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg className="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
                                                         </svg>
                                                     </button>
@@ -305,8 +401,8 @@ const Upload = () => {
                                                     <button
                                                         onClick={() => setTargetCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                                         disabled={targetCurrentPage === totalPages}
-                                                        class="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                        className="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg className="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
                                                     </button>
@@ -360,7 +456,7 @@ const Upload = () => {
                             <div className="items-center justify-center w-full px-4">
                                 <div className='mt-3 ml-3'>
                                     <p className='absolute top-3 left-3 w-full'>
-                                        <FaAmericanSignLanguageInterpreting class="w-9 h-9 absolute top-2 right-9" />
+                                        <FaAmericanSignLanguageInterpreting className="w-9 h-9 absolute top-2 right-9" />
                                         Now select the label as
                                         <span className='italic font-bold text-lg'> the Sensitive features</span>
                                         <br /><span className='text-green-500'>*** You can choose one or two options</span>
@@ -377,9 +473,9 @@ const Upload = () => {
                                                         checked={col === sensitiveColumn || col === sensitiveColumn2}
                                                         onChange={() => handleSensitiveOptions(col)}
                                                         className="hidden peer" />
-                                                    <label for={col} class="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
-                                                        <div class="block">
-                                                            <div class="w-full text-base">{col}</div>
+                                                    <label for={col} className="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                                        <div className="block">
+                                                            <div className="w-full text-base">{col}</div>
                                                         </div>
                                                     </label>
                                                 </div>
@@ -387,14 +483,14 @@ const Upload = () => {
                                             ))}
                                         </div>
                                         {columns.length > itemsPerPage && (
-                                            <div class="flex flex-col mt-5">
-                                                <div class="inline-flex mt-2 xs:mt-0 justify-end text-sm">
+                                            <div className="flex flex-col mt-5">
+                                                <div className="inline-flex mt-2 xs:mt-0 justify-end text-sm">
 
                                                     <button
                                                         onClick={() => setSensitiveCurrentPage((prev) => Math.max(prev - 1, 1))}
                                                         disabled={sensitiveCurrentPage === 1}
-                                                        class="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                                        <svg class="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                        className="flex items-center justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg className="w-3.5 h-3.5 me-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
                                                         </svg>
                                                     </button>
@@ -404,8 +500,8 @@ const Upload = () => {
                                                     <button
                                                         onClick={() => setSensitiveCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                                         disabled={sensitiveCurrentPage === totalPages}
-                                                        class="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                                        className="flex items-center mr-5 justify-center  px-4 h-6 text-base font-medium text-white bg-gray-800 rounded-e hover:bg-gray-900 dark:bg-gray-800  dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                                        <svg className="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                                                         </svg>
                                                     </button>
@@ -450,8 +546,8 @@ const Upload = () => {
                             </p>
                         )}
                         <div className="items-center justify-center md:pr-11 md:pl-11">
-                            <h3 class="mb-5 text-xl font-medium text-gray-900 dark:text-white">Choose the Problem Type:</h3>
-                            <ul class="grid w-full gap-6 md:grid-cols-2">
+                            <h3 className="mb-5 text-xl font-medium text-gray-900 dark:text-white">Choose the Problem Type:</h3>
+                            <ul className="grid w-full gap-6 md:grid-cols-2">
                                 <li>
                                     <input
                                         type="radio"
@@ -459,14 +555,14 @@ const Upload = () => {
                                         onChange={(e) => setProblemTypeColumn(e.target.value)}
                                         value="regression"
                                         checked={problemTypeColumn === "regression"}
-                                        class="hidden peer" />
-                                    <label for="regression" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
-                                        <div class="block">
+                                        className="hidden peer" />
+                                    <label for="regression" className="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
+                                        <div className="block">
                                             <div className='flex'>
-                                                <img src={regImg} class="mb-2 w-20 h-20" alt="ax" />
-                                                <div class="w-full ml-4">
-                                                    <div class="text-xl mb-3 font-semibold">Regression</div>
-                                                    <p class="text-sm">Predicts a continuous output based on input features.</p>
+                                                <img src={regImg} className="mb-2 w-20 h-20" alt="ax" />
+                                                <div className="w-full ml-4">
+                                                    <div className="text-xl mb-3 font-semibold">Regression</div>
+                                                    <p className="text-sm">Predicts a continuous output based on input features.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -479,14 +575,14 @@ const Upload = () => {
                                         onChange={(e) => setProblemTypeColumn(e.target.value)}
                                         value="classification"
                                         checked={problemTypeColumn === "classification"}
-                                        class="hidden peer" />
-                                    <label for="classification" class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
-                                        <div class="block">
+                                        className="hidden peer" />
+                                    <label for="classification" className="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 peer-checked:bg-gray-800">
+                                        <div className="block">
                                             <div className='flex'>
-                                                <img src={claImg} class="mb-2 w-20 h-20" alt="ax" />
-                                                <div class="w-full ml-4">
-                                                    <div class="text-xl mb-3 font-semibold">Classification</div>
-                                                    <p class="text-sm">Categorizes inputs into discrete classes or labels.</p>
+                                                <img src={claImg} className="mb-2 w-20 h-20" alt="ax" />
+                                                <div className="w-full ml-4">
+                                                    <div className="text-xl mb-3 font-semibold">Classification</div>
+                                                    <p className="text-sm">Categorizes inputs into discrete classes or labels.</p>
                                                 </div>
                                             </div>
                                         </div>
