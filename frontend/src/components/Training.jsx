@@ -102,7 +102,6 @@ const Training = () => {
             const response = await axios.post("http://localhost:5000/train", formData);
 
             const result = response.data;
-            console.log('Training Result:', result);
             setProgress(6);
             navigate('/analys', { state: { result } });
         } catch (error) {

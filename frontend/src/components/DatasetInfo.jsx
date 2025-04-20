@@ -429,7 +429,7 @@ const DatasetInfo = () => {
                                         Cancel the Process
                                     </button>
                                     {dataset_summary.class_distribution && (
-                                        <button onClick={() => { setDoBalanceData(!doBalanceData) }} type="button" className="flex py-2 px-3 text-sm font-medium text-gray-100 bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
+                                        <button onClick={() => { setDoBalanceData(!doBalanceData) }} type="button" className="flex w-32 py-2 justify-center items-center text-sm font-medium text-gray-100 bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
                                             Balance
                                             {doBalanceData && (
                                                 <FaCheck className="ml-2 mt-1" />
@@ -438,10 +438,10 @@ const DatasetInfo = () => {
                                     )}
 
                                     {dataset_summary.class_distribution && !doBalanceData ? (
-                                        <button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                        <button onClick={handleStartTraining} className="py-2 w-32 py-2 justify-center items-center text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
                                             Continue Anyway
                                         </button>
-                                    ) : (<button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                    ) : (<button onClick={handleStartTraining} className="py-2 w-32 py-2 justify-center items-center text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
                                         Continue
                                     </button>
                                     )}
@@ -452,9 +452,9 @@ const DatasetInfo = () => {
 
                     {/* //show missing data as a popup */}
                     {showMissingData && (
-                        <div id="deleteModal" className="m-20 absolute top-0 right-0 justify-center items-center md:inset-0 h-full">
+                        <div id="deleteModal" className="m-20 absolute top-0 right-0 h-full justify-center items-center md:inset-0">
                             <div className="relative p-4 text-center rounded-lg shadow bg-gray-300 sm:p-5">
-                                <button type="button" onClick={() => { setShowMissingData(false); }} className="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                                <button type="button" onClick={() => { setShowMissingData(false); }} className="text-gray-500 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
                                     <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     <span className="sr-only">Close modal</span>
                                 </button>
@@ -467,7 +467,7 @@ const DatasetInfo = () => {
                                     {dataset_summary && dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                         // Check if any column has missing values greater than 0
                                         Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
-                                            <ul className="text-gray-900">
+                                            <ul className="text-gray-900 max-h-[150px] overflow-y-scroll scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-300 scrollbar-no-buttons">
                                                 {Object.entries(dataset_summary.missing_data)
                                                     .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0
                                                     .map(([col, missing]) => (

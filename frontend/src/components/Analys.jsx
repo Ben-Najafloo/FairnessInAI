@@ -8,6 +8,9 @@ import { SiThealgorithms } from "react-icons/si";
 import { GrDocumentConfig } from "react-icons/gr";
 import FairnessDashboard from './analysis-components/FairnessDashboard';
 import FeatureImportanceChart from './analysis-components/FeatureImportanceChart';
+import GroupMetric from './analysis-components/GroupMetric';
+import RocCurve from './analysis-components/RocCurve';
+import DisparityMetricsChart from './analysis-components/DisparityMetricsChart';
 
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
@@ -25,6 +28,16 @@ import html2canvas from "html2canvas";
 const Analys = () => {
     const location = useLocation();
     const { result } = location.state || {};
+    // Parse if result is a JSON string
+    if (typeof result === 'string') {
+        try {
+            result = JSON.parse(result);
+        } catch (error) {
+            console.error('Failed to parse result JSON:', error);
+            result = {};
+        }
+    }
+
     const { setProgress } = useContext(ProgressContext);
     const [isShared, setIsShared] = useState(false);
 
@@ -96,6 +109,7 @@ const Analys = () => {
     if (!result) {
         return <p>No results available. Please start training.</p>;
     }
+    console.log('Received result data:', result);
 
     // Extract the evaluation object and message from the result
     const { evaluation, message, do_balance_data } = result;
@@ -110,7 +124,8 @@ const Analys = () => {
         fairness_reason,
         precision,
         recall,
-        additional_insights
+        additional_insights,
+        fairness_dashboard
     } = evaluation || {};
     const {
         accuracy_disparity,
@@ -124,13 +139,17 @@ const Analys = () => {
         selection_rate_disparity,
         weighted_accuracy
     } = additional_insights || {};
-
+    const {
+        disparity_metrics
+    } = fairness_dashboard || {};
 
     // confusion matrix
-    const trueNegative = confusion_matrix[0][0];
-    const falsePositive = confusion_matrix[0][1];
-    const falseNegative = confusion_matrix[1][0];
-    const truePositive = confusion_matrix[1][1];
+    const safeMatrix = confusion_matrix || [[0, 0], [0, 0]];
+
+    const trueNegative = safeMatrix[0]?.[0] ?? 0;
+    const falsePositive = safeMatrix[0]?.[1] ?? 0;
+    const falseNegative = safeMatrix[1]?.[0] ?? 0;
+    const truePositive = safeMatrix[1]?.[1] ?? 0;
 
     const confusionMatrixData = [
         { name: 'True Negative', value: trueNegative },
@@ -139,20 +158,39 @@ const Analys = () => {
         { name: 'True Positive', value: truePositive }
     ];
 
+    const total = confusionMatrixData.reduce((sum, item) => sum + item.value, 0);
+
     // related to confusion matrix pie chart
-    const colors = ['rgba(54, 162, 235, 0.7)',
+    const colors = [
+        'rgba(54, 162, 235, 0.7)',
         'rgba(75, 192, 192, 0.7)',
         'rgba(153, 102, 255, 0.7)',
-        'rgba(255, 159, 64, 0.7)'];
+        'rgba(255, 159, 64, 0.7)'
+    ];
 
 
     ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
     const MetricsBarChart = () => {
+
+        const clean = (val) =>
+            typeof val === 'number' && isFinite(val) ? val : 0;
+
+
+
+
         const data = {
             labels: ['Accuracy', 'Precision', 'Recall', 'Fairness', 'F1 Score', 'ROC AUC', 'Weighted Accuracy'],
             datasets: [
                 {
-                    data: [performance_score, precision, recall, fairness_score, f1_score, roc_auc, weighted_accuracy],
+                    data: [
+                        clean(performance_score),
+                        clean(precision),
+                        clean(recall),
+                        clean(fairness_score),
+                        clean(f1_score),
+                        clean(roc_auc),
+                        clean(weighted_accuracy)
+                    ],
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.7)',
                         'rgba(75, 192, 192, 0.7)',
@@ -218,7 +256,7 @@ const Analys = () => {
                         weight: 'bold'
                     },
                     formatter: function (value) {
-                        return value.toFixed(2);
+                        return typeof value === 'number' ? value.toFixed(2) : 'N/A';
                     }
                 }
             },
@@ -263,7 +301,7 @@ const Analys = () => {
             },
         };
         return (
-            <div className="w-full max-w-2xl p-4 mt-5">
+            <div className="w-full max-w-2xl p-4 mt-5 h-96">
                 <Bar data={data} options={options} />
             </div>
         );
@@ -273,23 +311,23 @@ const Analys = () => {
         <div className='md:pl-5 md:pr-5 relative '>
 
             <div className="flex justify-end items-end w-full">
-                <div className="flex lg:ml-4 lg:mt-0">
+                <div className="flex lg:ml-4 lg:mt-0 h-12">
                     <span className="hidden sm:block mr-3">
                         <Link to="/training"
-                            className="text-white flex border border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
-                            <GrDocumentConfig className="mr-3 text-xl" />Reconfiguration
+                            className="text-white flex hover:border hover:border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
+                            <GrDocumentConfig className="mr-2 text-xl" />Reconfiguration
                         </Link>
                     </span>
                     <span className="hidden sm:block">
                         <Link to="/upload"
-                            className="text-white flex border border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
-                            <MdAddchart className="mr-3 text-xl" />New Assessment
+                            className="text-white flex hover:border hover:border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
+                            <MdAddchart className="mr-2 text-xl" />New Assessment
                         </Link>
                     </span>
 
                     <span className="ml-3 hidden sm:block">
-                        <button onClick={handleSharing} className="text-blue-300 flex border border-blue-300  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
-                            Get Report <FaRegShareFromSquare className="ml-3 text-xl" />
+                        <button onClick={handleSharing} className="text-blue-300 flex hover:border hover:border-blue-300  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
+                            <FaRegShareFromSquare className="mr-2 text-xl" /> Get Report
                         </button>
                     </span>
 
@@ -343,7 +381,7 @@ const Analys = () => {
                 </div>
             )}
 
-            <div className='h-[530px] max-h-[540px] mt-4 overflow-y-scroll scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-700 scrollbar-no-buttons'>
+            <div className='h-[540px] max-h-[550px] mt-3 overflow-y-scroll scrollbar scrollbar-thumb-gray-400 scrollbar-track-gray-700 scrollbar-no-buttons'>
                 <section id="analysis-section" className="px-11 pt-7 pb-2 antialiased mb-7 bg-gray-700 py-4">
 
                     <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
@@ -377,62 +415,59 @@ const Analys = () => {
                         </div>
 
                         <div>
-                            {/* performance metric bar table*/}
+                            {/* performance metric table*/}
                             <div className="md:grid md:gap-3 md:grid-cols-1">
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Accuracy Score:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{performance_score !== undefined ? performance_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{performance_score?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Overall correctness of predictions compared to actual outcomes.</div>
                                 </div>
                                 {do_balance_data && (
                                     <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                         <div className="text-sm w-48 text-gray-900 dark:text-white">Wighted Accuracy:</div>
-                                        <div className="text-sm w-32 text-gray-900 dark:text-white">{weighted_accuracy !== undefined ? weighted_accuracy.toFixed(2) : 'N/A'}</div>
+                                        <div className="text-sm w-32 text-gray-900 dark:text-white">{weighted_accuracy?.toFixed?.(2) ?? 'N/A'}</div>
                                         <div className="text-sm text-gray-900 dark:text-white">Adjusts for class imbalance by valuing the correct classification of different classes differently.</div>
                                     </div>
                                 )}
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Precision Score:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{precision !== undefined ? precision.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{precision?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Proportion of true positives among all predicted positives.</div>
                                 </div>
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Recall Score:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{recall !== undefined ? recall.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{recall?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Ability to correctly identify actual positive cases.</div>
                                 </div>
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">F1 Score:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{f1_score !== undefined ? f1_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{f1_score?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Balanced average of precision and recall.</div>
                                 </div>
 
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">ROC AUC:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{roc_auc !== undefined ? roc_auc.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{roc_auc?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Model's performance in distinguishing classes (higher = better separation).</div>
                                 </div>
+
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Fairness Score:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{fairness_score !== undefined ? fairness_score.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{fairness_score?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-green-400">Metric: {fairness_metric !== undefined ? fairness_metric : 'N/A'}</div>
                                 </div>
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Accuracy Disparity:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{accuracy_disparity !== undefined ? accuracy_disparity.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{accuracy_disparity?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">Variation in accuracy between different groups (lower = fairer).</div>
                                 </div>
                                 <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
                                     <div className="text-sm w-48 text-gray-900 dark:text-white">Selection Rate Disparity:</div>
-                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{selection_rate_disparity !== undefined ? selection_rate_disparity.toFixed(2) : 'N/A'}</div>
+                                    <div className="text-sm w-32 text-gray-900 dark:text-white">{selection_rate_disparity?.toFixed?.(2) ?? 'N/A'}</div>
                                     <div className="text-sm text-gray-900 dark:text-white">No difference in selection rates between groups.</div>
                                 </div>
-                                {/* <div className="flex items-center border-b border-b-gray-600 px-2 pb-2">
-                                    <div className="text-sm w-64 text-gray-900 dark:text-white">Fairness Metric:</div>
-                            
-                                </div> */}
-
                             </div>
+                            {/* performance metric bar chart*/}
                             <div className="md:grid md:gap-1 md:grid-cols-1">
                                 {/* performance metric bar chart */}
                                 <MetricsBarChart className="text-whait" />
@@ -447,30 +482,40 @@ const Analys = () => {
                         <FeatureImportanceChart feature_importance={feature_importance} />
                     </div>
 
+                    {/* confusion_matrix */}
                     <div className='mt-24'>
                         <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Confusion Matrix:</h4>
                         <div className="grid gap-3 md:grid-cols-2">
                             {/* confusion matrix pie chart */}
-                            <div className="h-64 mt-5">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={confusionMatrixData}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={true}
-                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                        >
-                                            {confusionMatrixData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                                            ))}
-                                        </Pie>
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
+                            {total === 0 ? (
+                                <p>No confusion matrix data to display.</p>
+                            ) : (
+                                <div className="h-64 mt-5">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={confusionMatrixData}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={true}
+                                                label={({ name, percent }) => {
+                                                    const safePercent = typeof percent === 'number' ? (percent * 100).toFixed(0) : 'N/A';
+                                                    return `${name}: ${safePercent}%`;
+                                                }}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                            >
+                                                {confusionMatrixData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                                ))}
+                                            </Pie>
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+
+
 
                             <div className="grid grid-cols-2 gap-2 max-w-md mx-auto h-48 mt-11">
                                 <div className="bg-blue-300 p-4 text-center border">
@@ -491,6 +536,23 @@ const Analys = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* group_metrics */}
+                    <div className="mt-24">
+                        <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Group Metrics:</h4>
+                        <GroupMetric group_metrics={group_metrics} />
+                    </div>
+
+                    {/* roc_curve */}
+                    <div className="mt-24">
+                        <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Roc Curve Chart:</h4>
+                        <RocCurve roc_curve={roc_curve} />
+                    </div>
+                    {/* disparity_metrics */}
+                    <div className="mt-24 h-94">
+                        <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200">Disparity Metrics Chart:</h4>
+                        <DisparityMetricsChart disparity_metrics={disparity_metrics} />
                     </div>
 
 

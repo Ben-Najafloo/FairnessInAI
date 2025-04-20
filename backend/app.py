@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import math
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
@@ -82,6 +83,11 @@ def upload_file():
         sensitive_column = request.form.get('sensitive_column')
         sensitive_column2 = request.form.get('sensitive_column2')
         problem_type = request.form.get('problem_type')
+
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
         
 
         if label_column not in data.columns or sensitive_column not in data.columns:
@@ -96,7 +102,14 @@ def upload_file():
         logging.info(f"Label column '{label_column}' is detected as {label_type}.")
         
         # Preprocess data
-        X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
+        X, y, _ = preprocess_data(data, label_column, sensitive_column)
+
+        # Construct intersectional sensitive feature after
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
+
         logging.info("Preprocessing completed successfully.")
         # logging.debug(f"Feature data (X) shape: {X.shape}")
 
@@ -136,6 +149,7 @@ def upload_file():
         uploaded_data['data'] = data
         uploaded_data['label_column'] = label_column
         uploaded_data['sensitive_column'] = sensitive_column
+        uploaded_data['sensitive_column2'] = sensitive_column2
         uploaded_data['problem_type'] = problem_type
         logging.info("Data and metadata stored in global variable.")
 
@@ -190,8 +204,6 @@ def get_class_distribution(df, label_column):
         # logging.debug(f"Class distribution: {class_dist}")
         return class_dist
     return None
-
-
 
 logging.info("Returns the distribution of classes in the label column.")
 
@@ -250,6 +262,7 @@ def train_model():
         data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data 
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
+        sensitive_column2 = uploaded_data.get('sensitive_column2', None)
         problem_type = uploaded_data.get('problem_type', None)  
 
         if problem_type is None:
@@ -269,28 +282,36 @@ def train_model():
         tpot_population_size = config.get('tpotPopulationSize', 30)
 
         # Handle missing data if requested
-        logging.info(f"Handling missing data with strategy: {strategy}")
+        # logging.info(f"Handling missing data with strategy: {strategy}")
         data = handle_missing_data(data, strategy=strategy)
         # Log missing data after handling
         missing_data_after_handling = get_missing_data(data)
-        logging.info(f"Missing data after handling: {missing_data_after_handling}")
+        # logging.info(f"Missing data after handling: {missing_data_after_handling}")
 
         # Log class distribution before balancing
         class_distribution_before_balancing = get_class_distribution(data, label_column)
-        logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
+        # logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
 
         # balancing
         if (do_balance_data):
             balanced = balance_classes(data, label_column)
             class_distribution_after_balancing = get_class_distribution(balanced, label_column)
-            logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
+            # logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
             
 
         # Preprocess data for training
         logging.info("Preprocessing data for training")
-        X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
+        # Preprocess
+        X, y, _ = preprocess_data(data, label_column, sensitive_column)
 
-        # Train the model
+        # Reconstruct sensitive feature
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
+
+
+        # Train the model.....................................................................................................
         logging.info(f"Starting model training with {algorithm} for {problem_type} problem")
         model, evaluation_results = train_model_with_fairness(
             X, y, sensitive, 
@@ -303,12 +324,21 @@ def train_model():
             problem_type=problem_type
         )
 
+        def sanitize_for_json(obj):
+            if isinstance(obj, dict):
+                return {k: sanitize_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [sanitize_for_json(v) for v in obj]
+            elif isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+                return None
+            return obj
+
         # Respond with results
         response_data = {
             'message': 'Model trained successfully',
-            'evaluation': evaluation_results,
+            'evaluation': sanitize_for_json(evaluation_results),
             'class_distribution_before_balancing': class_distribution_before_balancing,
-            'do_balance_data' : do_balance_data
+            'do_balance_data': do_balance_data
         }
         if (do_balance_data):
             response_data['class_distribution_after_balancing'] = class_distribution_after_balancing
