@@ -11,7 +11,7 @@ const Nav = () => {
     }
     return (
         <nav class="bg-gray-800">
-            <div class="mx-auto max-w-7xl  sm:px-6 lg:px-8">
+            <div class="mx-auto px-5">
                 <div class="flex py-2 items-center justify-between">
 
                     <div class="flex items-center text-white">
@@ -22,18 +22,18 @@ const Nav = () => {
                         </Link>
                         <h1 className='text-xl mt-6'>Assessing Fairness</h1>
                         <div class="hidden md:block">
-                            <div class="ml-20 flex items-baseline space-x-4">
-
-                                {/* <Link to="/" onClick={goToHome} class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Home</Link>
-                                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Team</a>
-                                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Projects</a>
-                                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Help</a> */}
-
+                            <div class="ml-2 flex items-baseline space-x-4">
+                                {/* <a href="/document" target="_blank" rel="noopener noreferrer" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Document</a>
+                                <a href="/guidance" target="_blank" rel="noopener noreferrer" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Guidance</a> */}
                             </div>
                         </div>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
+                            <div class="ml-2 flex items-baseline space-x-4">
+                                <a href="/document" target="_blank" rel="noopener noreferrer" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Document</a>
+                                <a href="/guidance" target="_blank" rel="noopener noreferrer" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Guidance</a>
+                            </div>
                             <button type="button" class="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                                 {/* <span class="absolute -inset-1.5"></span>
                                 <span class="sr-only">View notifications</span>

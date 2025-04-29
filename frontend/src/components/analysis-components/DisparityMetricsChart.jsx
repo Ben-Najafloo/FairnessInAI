@@ -1,3 +1,4 @@
+import React, { useContext, useRef, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -8,11 +9,38 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
+import { ProgressContext } from '../../ProgressContext';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 const DisparityMetricsChart = ({ disparity_metrics }) => {
+    const { closeSidebar } = useContext(ProgressContext);
+    const chartRef = useRef();
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            if (chartRef.current?.chart) {
+                console.log('Destroy and rebuild chart');
+                const chart = chartRef.current.chart;
+                chart.destroy();  // Force destroy
+                chart.update();   // Re-initialize with new dimensions
+            }
+        });
+
+        const container = chartRef.current?.canvas?.parentNode;
+        if (container) {
+            resizeObserver.observe(container);
+        }
+
+        return () => {
+            if (container) {
+                resizeObserver.unobserve(container);
+            }
+        };
+    }, []);
+
     if (!disparity_metrics) return null;
+
+
 
     const labels = [
         'False Negative Rate Disparity',
@@ -42,8 +70,9 @@ const DisparityMetricsChart = ({ disparity_metrics }) => {
     };
 
     const options = {
-        indexAxis: 'y', // Horizontal bars
+        indexAxis: 'y',
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false
@@ -65,6 +94,12 @@ const DisparityMetricsChart = ({ disparity_metrics }) => {
                 color: 'white',
             }
         },
+        elements: {
+            bar: {
+                barThickness: 5,
+            },
+        },
+        maintainAspectRatio: false,
         scales: {
             x: {
                 beginAtZero: true,
@@ -86,7 +121,11 @@ const DisparityMetricsChart = ({ disparity_metrics }) => {
         }
     };
 
-    return <Bar data={data} options={options} />;
+    return (
+        <div className="w-full h-[350px] relative">
+            <Bar key={closeSidebar ? 'collapsed' : 'expanded'} ref={chartRef} data={data} options={options} />
+        </div>
+    );
 };
 
 export default DisparityMetricsChart;

@@ -1,4 +1,6 @@
+import React, { useContext, useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
+import { ProgressContext } from '../../ProgressContext';
 import {
     Chart as ChartJS,
     LineElement,
@@ -9,10 +11,33 @@ import {
     Legend,
     Title
 } from 'chart.js';
-
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, Title);
 
 const RocCurve = ({ roc_curve }) => {
+    const { closeSidebar } = useContext(ProgressContext);
+    const chartRef = useRef();
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            if (chartRef.current?.chart) {
+                console.log('Destroy and rebuild chart');
+                const chart = chartRef.current.chart;
+                chart.destroy();  // Force destroy
+                chart.update();   // Re-initialize with new dimensions
+            }
+        });
+
+        const container = chartRef.current?.canvas?.parentNode;
+        if (container) {
+            resizeObserver.observe(container);
+        }
+
+        return () => {
+            if (container) {
+                resizeObserver.unobserve(container);
+            }
+        };
+    }, []);
+
     if (!roc_curve || !roc_curve.fpr || !roc_curve.tpr) return null;
 
     const { fpr, tpr } = roc_curve;
@@ -46,6 +71,7 @@ const RocCurve = ({ roc_curve }) => {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             title: {
                 display: false,
@@ -97,7 +123,12 @@ const RocCurve = ({ roc_curve }) => {
         }
     };
 
-    return <Line data={data} options={options} />;
+
+    return (
+        <div className="w-full h-[420px] relative">
+            <Line key={closeSidebar ? 'collapsed' : 'expanded'} ref={chartRef} data={data} options={options} />
+        </div>
+    );
 };
 
 export default RocCurve;

@@ -9,7 +9,7 @@ const FairnessDashboard = ({
     featureImportance,
     domain = 'general', // Options: 'employment', 'lending', 'education', 'criminal_justice', 'general'
     categoryMapping = null, // Optional custom category mapping
-    customMetrics = null, // Optional additional metrics to display
+
 }) => {
     const [categorizedFeatures, setCategorizedFeatures] = useState({});
     const [topFactors, setTopFactors] = useState([]);
@@ -73,7 +73,7 @@ const FairnessDashboard = ({
             "Identify and minimize the influence of protected characteristics",
             "Examine proxies that might indirectly encode demographic information",
             "Implement fairness constraints to balance outcomes across demographic groups",
-            "Conduct disparate impact analysis to identify adverse outcomes",
+
         ]
     };
 
@@ -152,7 +152,7 @@ const FairnessDashboard = ({
         baseRecommendations = [
             ...baseRecommendations,
             "Implement fairness constraints to balance outcomes across groups",
-            "Conduct disparate impact analysis to identify adverse outcomes"
+
         ];
 
         setRecommendations(baseRecommendations);
@@ -224,86 +224,6 @@ const FairnessDashboard = ({
         setDomainSpecificInsights(insights);
     };
 
-    // Chart options
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
-                display: false,
-            },
-            title: {
-                display: true,
-                text: 'Feature Importance by Category',
-                color: 'white'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context) {
-                        return `Importance: ${context.raw.toFixed(3)}`;
-                    }
-                },
-                titleColor: 'white',
-                bodyColor: 'white',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Importance Score',
-                    font: {
-                        size: 14,
-                    },
-                    color: 'white'
-                },
-                ticks: {
-                    callback: function (value) {
-                        return value.toFixed(2);
-                    },
-                    color: 'white'
-                },
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.1)'
-                }
-            },
-            x: {
-                title: {
-                    display: false,
-                    text: 'Features',
-                    font: {
-                        size: 14,
-                    },
-                    color: 'white'
-                },
-                ticks: {
-                    color: 'white'
-                },
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.1)'
-                }
-            }
-        }
-    };
-
-    // Chart data preparation functions
-    const createChartData = (dataObj, color) => {
-        return {
-            labels: Object.keys(dataObj),
-            datasets: [
-                {
-                    label: 'Feature Importance',
-                    data: Object.values(dataObj),
-                    backgroundColor: color.bg,
-                    borderColor: color.border,
-                    borderWidth: 1,
-                },
-            ],
-        };
-    };
-
     // Format category name for display
     const formatCategoryName = (category) => {
         return category
@@ -338,76 +258,6 @@ const FairnessDashboard = ({
                     </ul>
                 </div>
             </div>
-
-            {/* Top factors chart */}
-            {/* <div className="p-4 mb-8">
-                <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Top 10 Most Important Features</h4>
-                <div className="h-64">
-                    <Bar
-                        data={{
-                            labels: topFactors.map(item => item[0]),
-                            datasets: [
-                                {
-                                    label: 'Feature Importance',
-                                    data: topFactors.map(item => item[1]),
-                                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                                    borderColor: 'rgba(153, 102, 255, 1)',
-                                    borderWidth: 1,
-                                },
-                            ],
-                        }}
-                        options={options}
-                    />
-                </div>
-            </div> */}
-
-            {/* Category charts */}
-            <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Category Charts</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {Object.entries(categorizedFeatures).map(([category, features], index) => {
-                    if (Object.keys(features).length === 0) return null;
-
-                    const color = categoryColors[category] || categoryColors.other;
-                    const chartData = createChartData(features, color);
-                    const categoryTitle = formatCategoryName(category);
-
-                    return (
-                        <div className="p-4" key={index}>
-                            <div className="h-96">
-                                <Bar
-                                    data={chartData}
-                                    options={{
-                                        ...options,
-                                        plugins: {
-                                            ...options.plugins,
-                                            title: {
-                                                display: true,
-                                                color: 'white',
-                                                text: categoryTitle
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Custom metrics display if provided */}
-            {customMetrics && (
-                <div className="p-4 mb-8">
-                    <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Additional Fairness Metrics</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Object.entries(customMetrics).map(([metric, value], index) => (
-                            <div key={index} className="bg-gray-800 p-4 rounded-lg">
-                                <h5 className="text-lg font-medium text-white mb-2">{formatCategoryName(metric)}</h5>
-                                <p className="text-2xl font-bold text-blue-300">{typeof value === 'number' ? value.toFixed(3) : value}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             <div className="p-4 text-white">
                 <h4 className="w-full text-md text-blue-300 mt-6 border-b border-b-blue-200 mb-5">Recommendations:</h4>

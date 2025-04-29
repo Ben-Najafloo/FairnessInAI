@@ -10,9 +10,6 @@ import { BsCaretDownFill } from "react-icons/bs";
 import { TbAutomation } from "react-icons/tb";
 import { GrManual } from "react-icons/gr";
 
-import manualPNG from '../img/manual.png';
-import autoPNG from '../img/auto2.png';
-
 const Training = () => {
 
     const location = useLocation();
@@ -157,9 +154,8 @@ const Training = () => {
                                     <ScaleLoader color="#FFFFFF" loading={true} size={200} />
                                     <p className='text-white'>Training in progress...</p>
                                     <p className='text-white'>It is working with TPOT Algorithm. IT will terminate when the first condition is met.</p>
-                                    <p className='text-white'>Generation size: 5  </p>
-                                    <p className='text-white'>Population size: 15  </p>
-                                    <p className='text-white'>This may take a while, enjoy your coffee!</p>
+                                    <p className='text-white'>Estimated time: 3 Mintes  </p>
+                                    <p className='text-white'>Enjoy your coffee!</p>
                                 </div>
                             </div>
                         </div>
@@ -177,7 +173,7 @@ const Training = () => {
                                     <ul class="grid w-full gap-6 md:grid-cols-2">
                                         {/* automatically Configuration */}
                                         <li>
-                                            <label onClick={handleAutoSubmit} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
+                                            <label onClick={handleAutoSubmit} class="inline-flex items-center justify-between text-gray-200 w-full p-7 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
 
                                                 <div class="block">
                                                     <div className='flex'>
@@ -193,7 +189,7 @@ const Training = () => {
                                             </label>
 
                                             {/* show details of auto confif button */}
-                                            <button onClick={dataTypeView} class=" hover:text-blue-300 px-5 inline-flex items-center text-white mt-1">
+                                            <button onClick={dataTypeView} class="text-sm hover:text-blue-300 px-5 inline-flex items-center text-white mt-1">
                                                 {dataTypeIsExpanded ? (
                                                     <>
                                                         <span>Hide Details</span>
@@ -210,7 +206,7 @@ const Training = () => {
 
                                         </li>
                                         <li>
-                                            <label onClick={handleManualConfig} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
+                                            <label onClick={handleManualConfig} class="inline-flex items-center justify-between text-gray-200 w-full p-7 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
                                                 <div class="block">
                                                     <div className='flex'>
                                                         <GrManual class="mb-2 w-7 h-7 mr-4" alt="alt" />
@@ -241,18 +237,22 @@ const Training = () => {
                                                     </ul>
                                                 </p>
                                             )} */}
-                                            <p className='text-white leading-8 mt-4'>Based on the problem type and a preliminary fairness analysis, the tool automatically selects a suitable &nbsp;
-                                                {problem_type && (<span className='font-bold italic mr-2 text-green-500'>
+                                            <p className='text-white leading-8 mt-4'>
+                                                Based on the problem type (in this case as you selected&nbsp;
+                                                {problem_type && (<span className='font-bold italic'>
                                                     {problem_type.toUpperCase()}
                                                 </span>)}
-                                                algorithm using TPOT (Tree-based Pipeline Optimization Tool). It applies automated machine learning (AutoML) techniques to identify the best-performing pipeline tailored to your dataset and fairness objectives.
+                                                ) and a preliminary fairness analysis, the tool automatically selects a suitable algorithm using
+                                                <span className='font-bold italic text-green-500'> TPOT</span> (Tree-based Pipeline Optimization Tool).
+                                                It applies automated machine learning (AutoML) techniques to identify the best-performing pipeline tailored to your dataset. <br />
+                                                In addition:
                                             </p>
                                             <p className='text-white leading-8'>
                                                 <ul>
-                                                    <li className='list-disc list-inside pl-3'><span className='font-bold italic mr-2'> Algorithm Selection: </span>Automatically optimized through TPOT to maximize performance and fairness.</li>
-                                                    <li className='list-disc list-inside pl-3'><span className='font-bold italic mr-2'> Fairness Metric: </span>Chosen based on the dataset’s structure and the fairness context (e.g., group fairness vs. individual fairness).</li>
-                                                    <li className='list-disc list-inside pl-3'><span className='font-bold italic mr-2'> Data Split: </span>80% for training, 20% for testing—ensuring robust evaluation.</li>
-                                                    <li className='list-disc list-inside pl-3'><span className='font-bold italic mr-2'> Imbalance Handling: </span>If class imbalance is detected, synthetic samples will be generated to balance the dataset before model training.</li>
+
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Fairness Metric: </span><span className='text-white'>Chosen based on the dataset’s structure and the fairness context (e.g., group fairness vs. individual fairness).</span></li>
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Data Split: </span><span className='text-white'>80% for training, 20% for testing—ensuring robust evaluation.</span></li>
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Imbalance Handling: </span><span className='text-white'>If class imbalance is detected, synthetic samples will be generated to balance the dataset before model training.</span></li>
                                                 </ul>
                                             </p>
                                         </motion.div>
@@ -293,7 +293,7 @@ const Training = () => {
                                                 {metrics.map((metric) => (
                                                     <li>
                                                         <input type="checkbox" id={`${metric}-checkbox`} value={metric} checked={selectedFairnessMetrics.includes(metric)} onChange={handleFairnessMetricChange} class="hidden peer" />
-                                                        <label for={`${metric}-checkbox`} class="inline-flex rounded items-center justify-between text-gray-200 w-full pt-2 px-5 border border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                                        <label for={`${metric}-checkbox`} class="inline-flex rounded items-center justify-between text-gray-200 w-full pt-2 px-4 border border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                                             <div class="block">
                                                                 <div className='flex'>
                                                                     <div class="w-full">

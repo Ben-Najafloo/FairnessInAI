@@ -34,7 +34,7 @@ uploaded_data = {}
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global uploaded_data
+    global uploaded_data, dataset, label_column, sensitive_column, sensitive_column2
     
     logging.info("Upload endpoint reached.")
 
@@ -48,6 +48,7 @@ def upload_file():
         return jsonify({'error': 'No selected file'})
 
     logging.info(f"Processing file: {file.filename}")
+    dataset = file.filename;
 
     try:
         try:
@@ -338,7 +339,11 @@ def train_model():
             'message': 'Model trained successfully',
             'evaluation': sanitize_for_json(evaluation_results),
             'class_distribution_before_balancing': class_distribution_before_balancing,
-            'do_balance_data': do_balance_data
+            'do_balance_data': do_balance_data,
+            'label_column': label_column,
+            'file_name': dataset,
+            'sensitive_column': sensitive_column,
+            'sensitive_column2': sensitive_column2,
         }
         if (do_balance_data):
             response_data['class_distribution_after_balancing'] = class_distribution_after_balancing
