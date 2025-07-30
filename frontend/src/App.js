@@ -18,7 +18,6 @@ function App() {
           <Route index element={<Home />} />
           <Route path='/document' element={<Document />} />
           <Route path="/" element={<Layout />}>
-
             <Route path="/upload" element={<Upload />} />
             <Route path='/dataset-info' element={<DatasetInfo />} />
             <Route path='/training' element={<Training />} />

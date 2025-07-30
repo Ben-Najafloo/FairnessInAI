@@ -1,7 +1,8 @@
 /node_modules/
 /venv/
 /frontend/node_modules/
-/test.html/
-/Untitled Diagram.drawio/
-/diagram.png/
-/codes.txt/
+/dataset/
+/images/
+/diagrams/
+/ml/test.py/
+/dataset.csv/

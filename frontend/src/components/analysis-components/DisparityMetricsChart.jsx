@@ -43,8 +43,8 @@ const DisparityMetricsChart = ({ disparity_metrics }) => {
 
 
     const labels = [
-        'False Negative Rate Disparity',
-        'False Positive Rate Disparity',
+        'FN Rate Disparity',
+        'FP Rate Disparity',
         'Selection Rate Disparity'
     ];
 
@@ -92,6 +92,11 @@ const DisparityMetricsChart = ({ disparity_metrics }) => {
             },
             datalabels: {
                 color: 'white',
+                align: 'end',
+                formatter: function (value) {
+                    // Format the value to two decimal places
+                    return value.toFixed(2);
+                }
             }
         },
         elements: {
