@@ -2,15 +2,8 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { ProgressContext } from '../ProgressContext';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-import Papa from 'papaparse';
 
-import AskHelp from "./upload-components/AskHelp";
-import ShowHelp from "./upload-components/ShowHelp";
-import DatasetUpload from './upload-components/DatasetUpload';
-import ProblemTypeCo from './upload-components/ProblemTypeCo';
-import TargetFeatureSelection from './upload-components/TargetFeatureSelection';
-import SensitiveFeatureSelection from './upload-components/SensitiveFeatureSelection';
-
+import { AskHelp, ShowHelp, DatasetUpload, ProblemTypeCo, TargetFeatureSelection, SensitiveFeatureSelection } from './upload-components/uploadComponentsUrl.js';
 
 const Upload = () => {
     const { setProgress } = useContext(ProgressContext);
@@ -23,6 +16,7 @@ const Upload = () => {
     const [sensitiveColumn, setSensitiveColumn] = useState(null);
     const [sensitiveColumn2, setSensitiveColumn2] = useState(null);
     const [problemTypeColumn, setProblemTypeColumn] = useState('');
+
     //help popup
     const [helpPopUpTarget, setHelpPopUpTarget] = useState(false);
     const [showHelpTarget, setShowHelpTarget] = useState(false);
@@ -43,7 +37,6 @@ const Upload = () => {
 
     const timeoutId = useRef(null);
     useEffect(() => {
-        // Set up the timeout
         timeoutId.current = setTimeout(() => {
             if (fileName) {
                 console.log('6 seconds passed and fileName is truthy');
@@ -106,56 +99,6 @@ const Upload = () => {
         setSensitiveCulumnBox(true);
     }
 
-    // Handle file input change
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-
-        if (selectedFile) {
-            const allowedFormats = ["csv", "json", "xls", "xlsx"]; // Allowed file extensions
-            const fileExtension = selectedFile.name.split('.').pop().toLowerCase(); // Extract file extension
-
-            if (!allowedFormats.includes(fileExtension)) {
-                setErrorMessage(`${fileExtension} is an Invalid file format. Please upload a file in one of the following formats: ${allowedFormats.join(", ")}`);
-                console.log(errorMessage)
-                setDatasetFile(null);
-                setFileName("");
-                setColumns([]);
-                return;
-            }
-            setErrorMessage('');
-            setDatasetFile(selectedFile);
-            setFileName(selectedFile.name);
-            setProgress(3);
-            setTargetTableShow(true)
-            setTimeout(() => {
-                if (!labelColumn) {
-                    console.log('6 seconds passed')
-                    setHelpPopUpTarget(true);
-                }
-            }, 6000);
-
-            // Read and parse the CSV file to extract column names
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const csvData = event.target.result;
-                Papa.parse(csvData, {
-                    header: true, // Automatically treat the first row as column headers
-                    complete: (results) => {
-                        if (results.meta.fields) {
-                            setColumns(results.meta.fields); // Extract column names
-                        }
-                    },
-                    error: (err) => {
-                        console.error("Error parsing CSV file:", err);
-                        setErrorMessage("Error reading CSV file. Please check the file format.");
-                        setColumns([]);
-                    },
-                });
-            };
-            reader.readAsText(selectedFile);
-        }
-    };
-
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -199,7 +142,18 @@ const Upload = () => {
                 <ShowHelp setShowHelpTarget={setShowHelpTarget} />
             )}
             {!datasetFile && (
-                <DatasetUpload errorMessage={errorMessage} handleFileChange={handleFileChange} />
+                <DatasetUpload
+                    errorMessage={errorMessage}
+                    setDatasetFile={setDatasetFile}
+                    datasetFile={datasetFile}
+                    fileName={fileName}
+                    setFileName={setFileName}
+                    setErrorMessage={setErrorMessage}
+                    setColumns={setColumns}
+                    setTargetTableShow={setTargetTableShow}
+                    labelColumn={labelColumn}
+                    setHelpPopUpTarget={setHelpPopUpTarget}
+                />
             )}
 
             {targetTableShow && (
@@ -243,3 +197,8 @@ const Upload = () => {
 };
 
 export default Upload;
+
+
+
+
+// rastesh man zaban italiaiim dar hadd A
