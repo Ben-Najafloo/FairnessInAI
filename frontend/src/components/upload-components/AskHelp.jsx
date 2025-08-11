@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { IoIosInformationCircle } from "react-icons/io";
 
-const AskHelp = ({ setHelpPopUpTarget, handleTargetHelp }) => {
+const AskHelp = ({ fileName, setHelpPopUpTarget, handleTargetHelp }) => {
+
+    const timeoutId = useRef(null);
+    useEffect(() => {
+        timeoutId.current = setTimeout(() => {
+            if (!fileName) {
+                setHelpPopUpTarget(true);
+            }
+        }, 6000);
+        return () => {
+            if (timeoutId.current) {
+                clearTimeout(timeoutId.current);
+            }
+        };
+    }, [fileName]);
+
     return (
         <div id="deleteModal" tabIndex="-1" ariaHidden="true" className="overflow-y-auto overflow-x-hidden fixed top-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-modal md:h-full">
             <div className="relative p-4 w-full max-w-md h-full md:h-auto">

@@ -3,7 +3,6 @@ import { ProgressProvider } from './ProgressContext';
 import Layout from './components/Layout';
 import Home from './components/Home';
 import Upload from './components/Upload';
-
 import DatasetInfo from './components/DatasetInfo';
 import Training from './components/Training';
 import Analys from './components/Analys';

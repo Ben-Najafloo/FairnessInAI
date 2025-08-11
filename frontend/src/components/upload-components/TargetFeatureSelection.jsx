@@ -7,17 +7,12 @@ const TargetFeatureSelection = ({
     labelErrorMessage,
     labelColumn,
     setLabelColumn,
-    setDatasetFile,
-    setTargetTableShow,
     fileName,
     backToUpload
 }) => {
 
     const itemsPerPage = 20;
     const totalPages = Math.ceil(columns.length / itemsPerPage);
-
-    // const [fileName, setFileName] = useState('');
-    console.log(fileName)
 
     const [currentPage, setCurrentPage] = useState(1);
     const currentLabels = columns.slice(
@@ -26,8 +21,6 @@ const TargetFeatureSelection = ({
     );
 
     const titleForTargetForm = <> Please set <span className='italic font-bold text-lg'> the Target Label </span> to perform ML model </>;
-
-
 
     return (
         <SelectionFrame
@@ -60,7 +53,6 @@ const TargetFeatureSelection = ({
                     </div>
                 ))}
             </div>
-
         </SelectionFrame>
     )
 }

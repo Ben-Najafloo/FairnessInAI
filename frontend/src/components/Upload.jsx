@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useContext, useState } from 'react';
 import { ProgressContext } from '../ProgressContext';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
@@ -35,22 +35,6 @@ const Upload = () => {
     //show all columns of dataset
     const [columns, setColumns] = useState([]);
 
-    const timeoutId = useRef(null);
-    useEffect(() => {
-        timeoutId.current = setTimeout(() => {
-            if (fileName) {
-                console.log('6 seconds passed and fileName is truthy');
-                setHelpPopUpTarget(true);
-            }
-        }, 6000);
-        return () => {
-            if (timeoutId.current) {
-                console.log('Timeout cleared');
-                clearTimeout(timeoutId.current);
-            }
-        };
-    }, [fileName]);
-
     const handleTargetHelp = () => {
         setHelpPopUpTarget(false);
         setShowHelpTarget(true);
@@ -72,7 +56,6 @@ const Upload = () => {
             setHelpPopUpTarget(false);
             setLabelErrorMessage('');
             setTargetTableShow(false);
-            console.log(labelColumn);
         }
     }
 
@@ -136,7 +119,7 @@ const Upload = () => {
         <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
 
             {helpPopUpTarget && (
-                <AskHelp setHelpPopUpTarget={setHelpPopUpTarget} handleTargetHelp={handleTargetHelp} />
+                <AskHelp fileName={fileName} setHelpPopUpTarget={setHelpPopUpTarget} handleTargetHelp={handleTargetHelp} />
             )}
             {showHelpTarget && (
                 <ShowHelp setShowHelpTarget={setShowHelpTarget} />
@@ -163,8 +146,6 @@ const Upload = () => {
                     labelErrorMessage={labelErrorMessage}
                     labelColumn={labelColumn}
                     setLabelColumn={setLabelColumn}
-                    setDatasetFile={setDatasetFile}
-                    setTargetTableShow={setTargetTableShow}
                     fileName={fileName}
                     backToUpload={backToUpload}
                 />
