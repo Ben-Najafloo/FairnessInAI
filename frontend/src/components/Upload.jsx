@@ -178,8 +178,3 @@ const Upload = () => {
 };
 
 export default Upload;
-
-
-
-
-// rastesh man zaban italiaiim dar hadd A
