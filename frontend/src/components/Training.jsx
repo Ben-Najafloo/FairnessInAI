@@ -7,9 +7,8 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ScaleLoader } from 'react-spinners';
 import { BsCaretDownFill } from "react-icons/bs";
-
-import manualPNG from '../img/manual.png';
-import autoPNG from '../img/auto2.png';
+import { TbAutomation } from "react-icons/tb";
+import { GrManual } from "react-icons/gr";
 
 const Training = () => {
 
@@ -100,8 +99,7 @@ const Training = () => {
             const response = await axios.post("http://localhost:5000/train", formData);
 
             const result = response.data;
-            console.log('Training Result:', result);
-            setProgress(8);
+            setProgress(6);
             navigate('/analys', { state: { result } });
         } catch (error) {
             console.error('Error during training:', error);
@@ -133,7 +131,7 @@ const Training = () => {
         try {
             const response = await axios.post("http://localhost:5000/train", formData);
             const result = response.data;
-            setProgress(8);
+            setProgress(6);
             console.log('Training Result:', result);
             setIsLoading(false); // Stop loading after success
             navigate('/analys', { state: { result } });
@@ -156,9 +154,8 @@ const Training = () => {
                                     <ScaleLoader color="#FFFFFF" loading={true} size={200} />
                                     <p className='text-white'>Training in progress...</p>
                                     <p className='text-white'>It is working with TPOT Algorithm. IT will terminate when the first condition is met.</p>
-                                    <p className='text-white'>Generation size: 5  </p>
-                                    <p className='text-white'>Population size: 15  </p>
-                                    <p className='text-white'>This may take a while, enjoy your coffee!</p>
+                                    <p className='text-white'>Estimated time: 3 Mintes  </p>
+                                    <p className='text-white'>Enjoy your coffee!</p>
                                 </div>
                             </div>
                         </div>
@@ -167,37 +164,39 @@ const Training = () => {
 
                 {showFinalConfig && (
                     <div className="md:pl-5 w-full">
-                        <div className="bg-gray-800 py-4 px-9 h-[550px] md:max-h-[550px] overflow-auto">
+                        <div className="bg-gray-800 py-4 px-9 h-[565px] md:max-h-[565px] overflow-auto">
                             <h2 className="text-xl mb-6 font-semibold text-gray-900 dark:text-white sm:text-2xl">Final Configuration</h2>
 
                             {showConfigTable && (
                                 <div className="w-full pl-4">
-                                    <h4 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Choose the Configuration Way:</h4>
+                                    <h4 class="mb-2 text-base text-white">Choose the Mode:</h4>
                                     <ul class="grid w-full gap-6 md:grid-cols-2">
                                         {/* automatically Configuration */}
                                         <li>
-                                            <label onClick={handleAutoSubmit} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
+                                            <label onClick={handleAutoSubmit} class="inline-flex items-center justify-between text-gray-200 w-full p-7 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
 
                                                 <div class="block">
                                                     <div className='flex'>
-                                                        <img src={autoPNG} class="mb-2 w-20 h-20" alt="alt" />
-                                                        <div class="w-full ml-4">
-                                                            <div class="text-xl mb-3 font-semibold">Auto</div>
-                                                            <p class="w-72 text-sm">All configuration options align with the selected problem type.</p>
-                                                        </div>
+                                                        <TbAutomation class="mb-2 w-7 h-7 mr-4" alt="alt" />
+                                                        <div class="text-xl mb-3 font-semibold">Auto</div>
+                                                    </div>
+                                                    <div class="w-full ml-2">
+                                                        <p class="text-sm">
+                                                            Auto mode streamlines the process and generates production-ready code with tuned hyperparameters, saving time and ensuring fairness-aware, high-performance modeling.
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </label>
 
                                             {/* show details of auto confif button */}
-                                            <button onClick={dataTypeView} class=" hover:font-bold px-5 inline-flex items-center text-white mt-4">
+                                            <button onClick={dataTypeView} class="text-sm hover:text-blue-300 px-5 inline-flex items-center text-white mt-1">
                                                 {dataTypeIsExpanded ? (
                                                     <>
                                                         <span>Hide Details</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span>View Details</span>
+                                                        <span>See more Details of auto mode</span>
                                                     </>
                                                 )}
                                                 <motion.span animate={{ rotate: dataTypeIsExpanded ? 180 : 0 }}>
@@ -207,14 +206,17 @@ const Training = () => {
 
                                         </li>
                                         <li>
-                                            <label onClick={handleManualConfig} class="inline-flex items-center justify-between text-gray-200 w-full p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
+                                            <label onClick={handleManualConfig} class="inline-flex items-center justify-between text-gray-200 w-full p-7 border border-gray-200 rounded-lg cursor-pointer hover:bg-slate-700 hover:border-green-400">
                                                 <div class="block">
                                                     <div className='flex'>
-                                                        <img src={manualPNG} class="mb-2 w-20 h-20" alt="alt" />
-                                                        <div class="w-full ml-4">
-                                                            <div class="text-xl mb-3 font-semibold">Manual</div>
-                                                            <p class="w-72 text-sm">All configuration options align with the selected problem type.</p>
-                                                        </div>
+                                                        <GrManual class="mb-2 w-7 h-7 mr-4" alt="alt" />
+                                                        <div class="text-xl mb-3 font-semibold">Manual</div>
+                                                    </div>
+                                                    <div class="w-full ml-2">
+                                                        <p class="text-sm">
+                                                            You have full control to manually select the algorithm, fairness metric, and train-test split ratio.
+                                                            <span className='font-bold italic mr-2'>&nbsp;All configuration options align with the selected problem type to ensure valid and meaningful evaluations.</span>
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </label>
@@ -223,31 +225,36 @@ const Training = () => {
                                     {/* show details of auto Configuration */}
                                     {dataTypeIsExpanded && (
                                         <motion.div>
-                                            <p className='text-white leading-8 mt-4'>According to the problem type and pre assessment of the fairness, it is suggested to use
-                                                <br />
-                                                {problem_type && (<span className='font-bold italic mr-2 text-green-500'>
-                                                    {problem_type.toUpperCase()}
-                                                </span>)}
-                                                algorithms for training.
-                                                <br /> Also the ratio for splitting the dataset will be <br /> <span className='font-bold italic'> Testing: 20% and Training: 80%.</span>
-                                            </p>
+                                            {/* 
                                             {(doBalanceData || doHandleMissData) && (
                                                 <span className='text-white leading-8'>Before processing of fairness assessment as there are:</span>
                                             )}
-                                            {doHandleMissData && (
-                                                <p className='text-white leading-8'>
-                                                    <ul>
-                                                        <li className='list-disc list-inside pl-3'> Missing value in your dataset, it will be handeled according to the type of the missed values.</li>
-                                                    </ul>
-                                                </p>
-                                            )}
+                                            
                                             {doBalanceData && (
                                                 <p className='text-white leading-8'>
                                                     <ul>
                                                         <li className='list-disc list-inside pl-3'> Imbalance class distribution in your dataset, it will be balanced (sintatic data points will be generated and added).</li>
                                                     </ul>
                                                 </p>
-                                            )}
+                                            )} */}
+                                            <p className='text-white leading-8 mt-4'>
+                                                Based on the problem type (in this case as you selected&nbsp;
+                                                {problem_type && (<span className='font-bold italic'>
+                                                    {problem_type.toUpperCase()}
+                                                </span>)}
+                                                ) and a preliminary fairness analysis, the tool automatically selects a suitable algorithm using
+                                                <span className='font-bold italic text-green-500'> TPOT</span> (Tree-based Pipeline Optimization Tool).
+                                                It applies automated machine learning (AutoML) techniques to identify the best-performing pipeline tailored to your dataset. <br />
+                                                In addition:
+                                            </p>
+                                            <p className='text-white leading-8'>
+                                                <ul>
+
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Fairness Metric: </span><span className='text-white'>Chosen based on the dataset’s structure and the fairness context (e.g., group fairness vs. individual fairness).</span></li>
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Data Split: </span><span className='text-white'>80% for training, 20% for testing—ensuring robust evaluation.</span></li>
+                                                    <li className='list-disc list-inside pl-3 text-green-500'><span className='font-bold italic'> Imbalance Handling: </span><span className='text-white'>If class imbalance is detected, synthetic samples will be generated to balance the dataset before model training.</span></li>
+                                                </ul>
+                                            </p>
                                         </motion.div>
                                     )}
                                 </div>
@@ -265,7 +272,7 @@ const Training = () => {
 
                                                     <li>
                                                         <input type="checkbox" id={`${algorithm}-checkbox`} value={algorithm} checked={selectedAlgorithms.includes(algorithm)} onChange={handleAlgorithmChange} class="hidden peer" />
-                                                        <label for={`${algorithm}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                                        <label for={`${algorithm}-checkbox`} class="inline-flex rounded items-center justify-between text-gray-200 w-full pt-2 px-5 border border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                                             <div class="block">
                                                                 <div className='flex'>
                                                                     <div class="w-full">
@@ -286,7 +293,7 @@ const Training = () => {
                                                 {metrics.map((metric) => (
                                                     <li>
                                                         <input type="checkbox" id={`${metric}-checkbox`} value={metric} checked={selectedFairnessMetrics.includes(metric)} onChange={handleFairnessMetricChange} class="hidden peer" />
-                                                        <label for={`${metric}-checkbox`} class="inline-flex items-center justify-between text-gray-200 w-full pt-2 px-5 border-2 border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
+                                                        <label for={`${metric}-checkbox`} class="inline-flex rounded items-center justify-between text-gray-200 w-full pt-2 px-4 border border-gray-200  cursor-pointer peer-checked:border-green-400 hover:text-gray-600  peer-checked:text-green-400 hover:bg-gray-50 ">
                                                             <div class="block">
                                                                 <div className='flex'>
                                                                     <div class="w-full">

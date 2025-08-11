@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import math
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
@@ -6,6 +7,10 @@ import logging
 from flask_cors import CORS
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+
+# balancing
+from sklearn.utils import resample 
+
 # from ml.ml_functions import preprocess_data, train_model_with_fairness
 # from ml.tpot_ml import train_model_with_fairness
 from ml.firelearn_integrated import train_model_with_fairness
@@ -29,7 +34,7 @@ uploaded_data = {}
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global uploaded_data
+    global uploaded_data, dataset, label_column, sensitive_column, sensitive_column2
     
     logging.info("Upload endpoint reached.")
 
@@ -43,15 +48,32 @@ def upload_file():
         return jsonify({'error': 'No selected file'})
 
     logging.info(f"Processing file: {file.filename}")
+    dataset = file.filename;
 
     try:
-        # Read the dataset
-        data = pd.read_csv(file)
+        try:
+            data = pd.read_csv(file)  # default
+        except Exception:
+            file.seek(0)
+            try:
+                data = pd.read_csv(file, sep=';', encoding='utf-8')
+            except Exception:
+                file.seek(0)
+                data = pd.read_csv(file, sep='\t', encoding='ISO-8859-1')
 
-        # Identify and drop a unique ID column
+        # Clean column names
+        data.columns = data.columns.str.strip().str.replace('\n', '', regex=False)
+
+        if data.empty:
+            return jsonify({'error': 'Uploaded file is empty or unreadable.'}), 400
+
+        # Check for all-null columns or rows and drop them
+        data = data.dropna(axis=1, how='all').dropna(axis=0, how='all')
+
+        # Drop fully unique ID column (likely index)
         dropped_column = None
         for col in data.columns:
-            if data[col].nunique() == len(data):  # Check uniqueness
+            if data[col].nunique(dropna=False) == len(data):
                 dropped_column = col
                 data = data.drop(columns=[col])
                 logging.info(f"Dropped ID column: {col}")
@@ -62,6 +84,11 @@ def upload_file():
         sensitive_column = request.form.get('sensitive_column')
         sensitive_column2 = request.form.get('sensitive_column2')
         problem_type = request.form.get('problem_type')
+
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
         
 
         if label_column not in data.columns or sensitive_column not in data.columns:
@@ -76,7 +103,14 @@ def upload_file():
         logging.info(f"Label column '{label_column}' is detected as {label_type}.")
         
         # Preprocess data
-        X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
+        X, y, _ = preprocess_data(data, label_column, sensitive_column)
+
+        # Construct intersectional sensitive feature after
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
+
         logging.info("Preprocessing completed successfully.")
         # logging.debug(f"Feature data (X) shape: {X.shape}")
 
@@ -116,6 +150,7 @@ def upload_file():
         uploaded_data['data'] = data
         uploaded_data['label_column'] = label_column
         uploaded_data['sensitive_column'] = sensitive_column
+        uploaded_data['sensitive_column2'] = sensitive_column2
         uploaded_data['problem_type'] = problem_type
         logging.info("Data and metadata stored in global variable.")
 
@@ -133,16 +168,22 @@ def get_missing_data(df):
     # logging.debug(f"Missing data: {missing_data}")
     return missing_data
 
+logging.info("get missing data.")
+
 def get_data_types(df):
     """Returns the data types of each column."""
     data_types = {col: str(dtype) for col, dtype in df.dtypes.items()}
     # logging.debug(f"Data types: {data_types}")
     return data_types
 
+logging.info("get data type.")
+
 def get_statistics(df):
     """Returns basic statistics for numerical columns."""
     stats = df.describe().round(2).to_dict()
     return stats
+
+logging.info("get statistics.")
 
 def detect_outliers(df):
     """Detects outliers using the Z-score method."""
@@ -155,6 +196,8 @@ def detect_outliers(df):
     # logging.debug(f"Outliers detected: {outlier_summary}")
     return outlier_summary
 
+logging.info("Detects outliers using the Z-score method.")
+
 def get_class_distribution(df, label_column):
     """Returns the distribution of classes in the label column."""
     if label_column in df.columns:
@@ -163,6 +206,8 @@ def get_class_distribution(df, label_column):
         return class_dist
     return None
 
+logging.info("Returns the distribution of classes in the label column.")
+
 def get_sensitive_column_distribution(df, sensitive_column):
     """Returns the distribution of the sensitive column."""
     if sensitive_column in df.columns:
@@ -170,6 +215,8 @@ def get_sensitive_column_distribution(df, sensitive_column):
         # logging.debug(f"Sensitive column distribution: {sensitive_dist}")
         return sensitive_dist
     return None
+
+logging.info("Returns the distribution of the sensitive column.")
 
 # Missing Data Handling Function
 def handle_missing_data(df, strategy="mean"):
@@ -183,6 +230,27 @@ def handle_missing_data(df, strategy="mean"):
 
     return df
 
+logging.info("Missing Data Handling Function.")
+
+# balancing 
+def balance_classes(df, label_column):
+    
+    classes = df[label_column].unique()
+    max_count = df[label_column].value_counts().max()
+
+    balanced_df = pd.DataFrame()
+    for cls in classes:
+        cls_samples = df[df[label_column] == cls]
+        balanced_cls = resample(cls_samples,
+                                replace=True,         # sample with replacement
+                                n_samples=max_count,  # match max class count
+                                random_state=42)
+        balanced_df = pd.concat([balanced_df, balanced_cls])
+
+    return balanced_df.sample(frac=1, random_state=42).reset_index(drop=True)  # shuffle
+
+logging.info("Balancing.")
+
 @app.route('/train', methods=['POST'])
 def train_model():
     global uploaded_data
@@ -195,6 +263,7 @@ def train_model():
         data = uploaded_data['data'].copy()  # Work on a copy to avoid modifying the original data 
         label_column = uploaded_data['label_column']
         sensitive_column = uploaded_data['sensitive_column']
+        sensitive_column2 = uploaded_data.get('sensitive_column2', None)
         problem_type = uploaded_data.get('problem_type', None)  
 
         if problem_type is None:
@@ -214,21 +283,36 @@ def train_model():
         tpot_population_size = config.get('tpotPopulationSize', 30)
 
         # Handle missing data if requested
-        logging.info(f"Handling missing data with strategy: {strategy}")
+        # logging.info(f"Handling missing data with strategy: {strategy}")
         data = handle_missing_data(data, strategy=strategy)
         # Log missing data after handling
         missing_data_after_handling = get_missing_data(data)
-        logging.info(f"Missing data after handling: {missing_data_after_handling}")
+        # logging.info(f"Missing data after handling: {missing_data_after_handling}")
 
         # Log class distribution before balancing
         class_distribution_before_balancing = get_class_distribution(data, label_column)
-        logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
+        # logging.info(f"Class distribution before balancing: {class_distribution_before_balancing}")
+
+        # balancing
+        if (do_balance_data):
+            balanced = balance_classes(data, label_column)
+            class_distribution_after_balancing = get_class_distribution(balanced, label_column)
+            # logging.info(f"Class distribution after balancing: {class_distribution_after_balancing}")
+            
 
         # Preprocess data for training
         logging.info("Preprocessing data for training")
-        X, y, sensitive = preprocess_data(data, label_column, sensitive_column)
+        # Preprocess
+        X, y, _ = preprocess_data(data, label_column, sensitive_column)
 
-        # Train the model
+        # Reconstruct sensitive feature
+        if sensitive_column2 and sensitive_column2 in data.columns:
+            sensitive = list(zip(data[sensitive_column], data[sensitive_column2]))
+        else:
+            sensitive = data[sensitive_column]
+
+
+        # Train the model.....................................................................................................
         logging.info(f"Starting model training with {algorithm} for {problem_type} problem")
         model, evaluation_results = train_model_with_fairness(
             X, y, sensitive, 
@@ -241,13 +325,28 @@ def train_model():
             problem_type=problem_type
         )
 
+        def sanitize_for_json(obj):
+            if isinstance(obj, dict):
+                return {k: sanitize_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [sanitize_for_json(v) for v in obj]
+            elif isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+                return None
+            return obj
+
         # Respond with results
         response_data = {
             'message': 'Model trained successfully',
-            'evaluation': evaluation_results,
+            'evaluation': sanitize_for_json(evaluation_results),
             'class_distribution_before_balancing': class_distribution_before_balancing,
-
+            'do_balance_data': do_balance_data,
+            'label_column': label_column,
+            'file_name': dataset,
+            'sensitive_column': sensitive_column,
+            'sensitive_column2': sensitive_column2,
         }
+        if (do_balance_data):
+            response_data['class_distribution_after_balancing'] = class_distribution_after_balancing
         
         # Add problem-specific metrics to response
         if problem_type.lower() == 'regression':
@@ -276,4 +375,4 @@ if __name__ == '__main__':
 
 
 
-    
+ 

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ProgressContext } from '../ProgressContext';
 import { BsCaretDownFill } from "react-icons/bs";
@@ -22,13 +22,23 @@ const DatasetInfo = () => {
     const [dataTypeIsExpanded, setDataTypeIsExpanded] = useState(false);
     const [basicStatisticsIsExpanded, setbasicStatisticsIsExpanded] = useState(false);
     const { setProgress } = useContext(ProgressContext);
+
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showMissingData, setShowMissingData] = useState(false);
     const [doHandleMissData, setDoHandleMissData] = useState(false);
     const [doBalanceData, setDoBalanceData] = useState(false);
 
+    // Safe redirect if no data
+    useEffect(() => {
+        if (!datasetInfo) {
+            navigate("/");
+        }
+    }, [datasetInfo, navigate]);
+
+
+
+    // Don't proceed with rendering if datasetInfo is not available
     if (!datasetInfo) {
-        navigate("/");
         return null;
     }
 
@@ -36,11 +46,20 @@ const DatasetInfo = () => {
     const dataTypeView = () => {
         setDataTypeIsExpanded(!dataTypeIsExpanded);
     };
+
     const basicStatisticsView = () => {
         setbasicStatisticsIsExpanded(!basicStatisticsIsExpanded);
     };
 
-    const { label_column, sensitive_column, sensitive_column2, problem_type, data_shape, dataset_summary, dropped_column, label_type } = datasetInfo;
+    // Safely access properties (with default values)
+    const label_column = datasetInfo?.label_column || '';
+    const sensitive_column = datasetInfo?.sensitive_column || '';
+    const sensitive_column2 = datasetInfo?.sensitive_column2 || '';
+    const problem_type = datasetInfo?.problem_type || '';
+    const data_shape = datasetInfo?.data_shape || {};
+    const dataset_summary = datasetInfo?.dataset_summary || {};
+    const dropped_column = datasetInfo?.dropped_column || [];
+    const label_type = datasetInfo?.label_type || '';
 
     const handleConfirmation = () => {
         setShowConfirmationModal(!showConfirmationModal);
@@ -49,10 +68,10 @@ const DatasetInfo = () => {
 
     const handleMissingData = () => {
         setShowMissingData(!showMissingData);
-    }
+    };
 
     const handleStartTraining = () => {
-        setProgress(7);
+        setProgress(5);
         console.log("Passing state:", {
             doHandleMissData: doHandleMissData,
             doBalanceData: doBalanceData
@@ -66,6 +85,7 @@ const DatasetInfo = () => {
             }
         });
     };
+
 
     //Histogram for basic statistics
     ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
@@ -291,13 +311,13 @@ const DatasetInfo = () => {
             },
             elements: {
                 bar: {
-                    barThickness: 10, // Adjust this value to decrease bar height
+                    barThickness: 10,
                 },
             },
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false, // This line disables the legend
+                    display: false,
                 },
                 datalabels: {
                     display: true,
@@ -344,28 +364,14 @@ const DatasetInfo = () => {
             plugins: {
                 legend: {
                     position: 'right',
+                    display: true,
                     labels: {
-                        color: 'rgb(255, 255, 255)',
-                        font: {
-                            size: 14, // Adjust font size
-                            weight: 'bold', // Make text bold
-                        },
-                        generateLabels: (chart) => {
-                            const data = chart.data;
-                            if (data.labels.length && data.datasets.length) {
-                                return data.labels.map((label, i) => {
-                                    const value = data.datasets[0].data[i];
-                                    return {
-                                        text: `${label}: ${value.toFixed(2)}%`, // Add percentage to legend
-                                        fillStyle: data.datasets[0].backgroundColor[i],
-                                        hidden: isNaN(value),
-                                        index: i,
-                                    };
-                                });
-                            }
-                            return [];
-                        },
-                    },
+                        color: 'white'
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    color: 'white',
                 },
             },
         };
@@ -384,14 +390,14 @@ const DatasetInfo = () => {
 
                     {showConfirmationModal && (
                         <div id="deleteModal" className="m-20 absolute top-0 right-0 justify-center items-center md:inset-0 h-full">
-                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-300 sm:p-5">
-                                <button type="button" onClick={() => { setShowConfirmationModal(false); }} className="text-gray-600 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center " data-modal-toggle="deleteModal">
+                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-700 sm:p-5">
+                                <button type="button" onClick={() => { setShowConfirmationModal(false); }} className="text-gray-200 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center " data-modal-toggle="deleteModal">
                                     <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     <span className="sr-only">Close modal</span>
                                 </button>
                                 <div className="flex absolute top-2.5 left-5">
-                                    <GiPieChart className="text-gray-700 w-10 h-10 mx-auto" />
-                                    <h4 className="text-md text-gray-700 p-2">Class Distribution: <span className="text-gray-900">Not balanced</span></h4>
+                                    <GiPieChart className="text-gray-200 w-9 h-9 mx-auto" />
+                                    <h4 className="text-md text-gray-200 p-2">Checking Class Distribution</h4>
                                 </div>
                                 {/* Class Distribution */}
                                 <div className="my-6 h-48 ">
@@ -404,13 +410,22 @@ const DatasetInfo = () => {
                                         <p className="text-gray-100">Class distribution not available.</p>
                                     )}
                                 </div>
-                                <p className="mb-4 text-gray-900">According to our analysis, the classes of target column are inbalanced which may cause algorithmic bias.</p>
+                                {!doBalanceData ? (
+                                    <p className="mb-4 text-gray-100 h-20">
+                                        The classes of target column are inbalanced which may cause algorithmic bias.<br />
+                                        Would you like to handle it?
+                                    </p>
+                                ) : (
+                                    <p className="mb-4 text-green-500 h-20">
+                                        The Class Distribution will be balanced befor training the data.
+                                    </p>
+                                )}
                                 <div className="flex justify-center items-center space-x-4">
                                     <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
                                         Cancel the Process
                                     </button>
                                     {dataset_summary.class_distribution && (
-                                        <button onClick={() => { setDoBalanceData(!doBalanceData) }} type="button" className="flex py-2 px-3 text-sm font-medium text-gray-100 bg-green-500 rounded border border-green-200 hover:bg-green-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-green-900 focus:z-10 ">
+                                        <button onClick={() => { setDoBalanceData(!doBalanceData) }} type="button" className="flex w-32 py-2 justify-center items-center text-sm font-medium text-gray-100 bg-green-500 rounded border border-green-200 hover:bg-green-100 hover:text-green-900 focus:z-10 ">
                                             Balance
                                             {doBalanceData && (
                                                 <FaCheck className="ml-2 mt-1" />
@@ -419,10 +434,10 @@ const DatasetInfo = () => {
                                     )}
 
                                     {dataset_summary.class_distribution && !doBalanceData ? (
-                                        <button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                        <button onClick={handleStartTraining} className="py-2 w-32 py-2 justify-center items-center text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
                                             Continue Anyway
                                         </button>
-                                    ) : (<button onClick={handleStartTraining} className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
+                                    ) : (<button onClick={handleStartTraining} className="py-2 w-32 py-2 justify-center items-center text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-900">
                                         Continue
                                     </button>
                                     )}
@@ -432,23 +447,21 @@ const DatasetInfo = () => {
                     )}
 
                     {/* //show missing data as a popup */}
-                    {showMissingData && (
-                        <div id="deleteModal" className="m-20 absolute top-0 right-0 justify-center items-center md:inset-0 h-full">
-                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-300 sm:p-5">
-                                <button type="button" onClick={() => { setShowMissingData(false); }} className="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
+                    {showMissingData && dataset_summary.missing_data && (
+                        <div id="deleteModal" className="m-20 absolute top-0 right-0 h-full justify-center items-center md:inset-0">
+                            <div className="relative p-4 text-center rounded-lg shadow bg-gray-700 sm:p-5">
+                                <button type="button" onClick={() => { setShowMissingData(false); }} className="text-gray-200 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="deleteModal">
                                     <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     <span className="sr-only">Close modal</span>
                                 </button>
                                 <div className="flex absolute top-2.5 left-5">
-                                    <VscEmptyWindow className="text-gray-700 w-10 h-10 mb-3.5 mx-auto" />
-                                    <h4 className="text-md text-gray-700 p-2">Missing Data</h4>
+                                    <VscEmptyWindow className="text-gray-200 w-9 h-9 mb-3.5 mx-auto" />
+                                    <h4 className="text-md text-gray-200 p-2">Checking Missing Data</h4>
                                 </div>
-                                {/* Class Distribution */}
-                                <div className="my-6 h-48">
-                                    {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
-                                        // Check if any column has missing values greater than 0
+                                <div className="my-6 h-48  px-48">
+                                    {dataset_summary && dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                         Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
-                                            <ul className="text-gray-900">
+                                            <ul className="text-gray-100 max-h-[150px] border border-gray-500 overflow-y-scroll scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-700 scrollbar-no-buttons">
                                                 {Object.entries(dataset_summary.missing_data)
                                                     .filter(([col, missing]) => missing > 0) // Only include columns with missing > 0
                                                     .map(([col, missing]) => (
@@ -458,23 +471,26 @@ const DatasetInfo = () => {
                                                     ))}
                                             </ul>
                                         ) : (
-                                            <span className="text-gray-800"> No missing data detected.</span>
+                                            <span className="text-gray-100"> No missing data detected.</span>
                                         )
                                     ) : (
-                                        <span className="text-gray-800"> No missing data detected.</span>
+                                        <span className="text-gray-100"> No missing data detected.</span>
                                     )}
 
-                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
-                                        <p className="mt-4 text-gray-800">According to our analysis, In the dataset there are some missing data. Would you like to impute?</p>
-                                    )}
+                                    {dataset_summary && dataset_summary.missing_data &&
+                                        Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
+                                            <p className="mt-4 text-gray-100">In the dataset there are some missing data. Would you like to impute?</p>
+                                        )}
                                 </div>
 
                                 <div className="flex justify-center items-center space-x-4">
-                                    <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
-                                        Cancel the Process
-                                    </button>
+                                    {dataset_summary && dataset_summary.missing_data && Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) && (
+                                        <button onClick={handleConfirmation} type="button" className="py-2 px-3 text-sm font-medium text-gray-600 bg-white rounded border border-gray-500 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 ">
+                                            Cancel the Process
+                                        </button>
+                                    )}
 
-                                    {Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
+                                    {dataset_summary && dataset_summary.missing_data && Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                         <button
                                             onClick={handleConfirmation}
                                             className="py-2 px-3 text-sm font-medium text-center text-white bg-blue-600 rounded hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300"
@@ -500,7 +516,7 @@ const DatasetInfo = () => {
                         {/* Display Dataset Details */}
                         <ul className="grid w-full gap-6 md:grid-cols-3">
                             <li>
-                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <MdTableRows className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Total Rows: <span className="font-bold">{data_shape[0]}</span></div>
@@ -508,7 +524,7 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <MdViewColumn className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Total Columns: <span className="font-bold">{data_shape[1]}</span></div>
@@ -520,7 +536,7 @@ const DatasetInfo = () => {
                         {/* Display columns Details */}
                         <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <GiHumanTarget className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Target Label: <span className="font-bold">{label_column.toUpperCase()} ({label_type}) </span> </div>
@@ -528,7 +544,7 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="flowbite-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <FaAmericanSignLanguageInterpreting className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Sensitive Column(s): <span className="font-bold"> {sensitive_column.toUpperCase()} </span>
@@ -541,7 +557,7 @@ const DatasetInfo = () => {
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <MdSyncProblem className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Problem Type: <span className="font-bold">{problem_type.toUpperCase()}</span>   </div>
@@ -553,11 +569,11 @@ const DatasetInfo = () => {
                         {/* Missing Data */}
                         <ul className="grid w-full gap-6 md:grid-cols-3 mt-3">
                             <li>
-                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <VscEmptyWindow className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Missing Data:&nbsp;
-                                            {dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
+                                            {dataset_summary && dataset_summary.missing_data && Object.keys(dataset_summary.missing_data).length > 0 ? (
                                                 // Check if any column has missing values greater than 0
                                                 Object.entries(dataset_summary.missing_data).some(([col, missing]) => missing > 0) ? (
                                                     <ul className="text-gray-100">
@@ -575,12 +591,13 @@ const DatasetInfo = () => {
                                             ) : (
                                                 <span className="text-gray-100"> No missing data detected.</span>
                                             )}
+
                                         </div>
                                     </div>
                                 </label>
                             </li>
                             <li>
-                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border-2 border-gray-200 rounded-lg">
+                                <label for="react-option" className="inline-flex items-center justify-between w-full px-5 py-2 text-gray-300 border border-gray-200 rounded-lg">
                                     <div className="block">
                                         <FaScissors className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Dropped Columns: <br />
@@ -606,7 +623,7 @@ const DatasetInfo = () => {
                                     <div className="block">
                                         <IoAnalyticsOutline className="mb-2 w-7 h-7" />
                                         <div className="w-full text-sm ">Detected Outliers' number:<br />
-                                            {dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
+                                            {dataset_summary && dataset_summary.outliers && Object.keys(dataset_summary.outliers).length > 0 ? (
                                                 <ul className="text-gray-100">
                                                     {Object.entries(dataset_summary.outliers).map(([col, count]) => (
                                                         <li key={col}>
@@ -621,13 +638,6 @@ const DatasetInfo = () => {
                                     </div>
                                 </label>
                             </li>
-
-
-
-
-
-
-
                         </ul>
 
                         {/* Class Distribution */}
@@ -650,34 +660,38 @@ const DatasetInfo = () => {
                                     <div className="flex items-center justify-center">
                                         <div className="container mx-auto p-4">
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                {Object.entries(dataset_summary.statistics)
-                                                    .slice(0, basicStatisticsIsExpanded ? undefined : 4)
-                                                    .map(([col, stats]) => (
-                                                        <div
-                                                            key={col}
-                                                            className="px-1 py-1 border text-black text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                        >
-                                                            <Histogram column={col} stats={stats} />
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {Object.entries(stats).map(([stat, value]) => (
-                                                                    <div
-                                                                        key={`${col}-${stat}`} // Unique key for each stat
-                                                                        className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
-                                                                    >
-                                                                        <div className="text-sm mb-1 text-gray-700">
-                                                                            {stat}: {value}
+                                                {dataset_summary && dataset_summary.statistics ? (
+                                                    Object.entries(dataset_summary.statistics)
+                                                        .slice(0, basicStatisticsIsExpanded ? undefined : 4)
+                                                        .map(([col, stats]) => (
+                                                            <div
+                                                                key={col}
+                                                                className="px-1 py-1 border text-black text-sm rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                            >
+                                                                <Histogram column={col} stats={stats} />
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {stats && Object.entries(stats).map(([stat, value]) => (
+                                                                        <div
+                                                                            key={`${col}-${stat}`}
+                                                                            className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
+                                                                        >
+                                                                            <div className="text-sm mb-1 text-gray-700">
+                                                                                {stat}: {value}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                ))}
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        ))
+                                                ) : (
+                                                    <p className="text-gray-100">No statistics available.</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button onClick={basicStatisticsView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
+                            <button onClick={basicStatisticsView} className="hover:font-bold px-5 inline-flex items-center text-sm">
                                 {basicStatisticsIsExpanded ? (
                                     <>
                                         <span>Show Less</span>
@@ -695,13 +709,12 @@ const DatasetInfo = () => {
 
 
                         {/* Data Types */}
-                        <div className=" text-md text-blue-300 mt-11">
+                        <div className="text-md text-blue-300 mt-11">
                             <h4>Data Types:</h4>
 
-                            {dataset_summary.data_types && (
+                            {dataset_summary && dataset_summary.data_types ? (
                                 <div className="flex items-center justify-center">
                                     <div className="container mx-auto p-4">
-                                        {/*  */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                                             {Object.entries(dataset_summary.data_types)
                                                 .slice(0, dataTypeIsExpanded ? undefined : 4)
@@ -713,17 +726,16 @@ const DatasetInfo = () => {
                                                         className="px-1 py-1 border rounded shadow-md bg-white hover:shadow-lg transition duration-200"
                                                     >
                                                         <div className="text-sm mb-1 text-gray-700">{col} : {dtype}</div>
-
                                                     </motion.div>
                                                 ))}
                                         </div>
-
                                     </div>
                                 </div>
-
+                            ) : (
+                                <p className="text-gray-100">No data types available.</p>
                             )}
 
-                            <button onClick={dataTypeView} className=" hover:font-bold px-5 inline-flex items-center text-sm">
+                            <button onClick={dataTypeView} className="hover:font-bold px-5 inline-flex items-center text-sm">
                                 {dataTypeIsExpanded ? (
                                     <>
                                         <span>Show Less</span>

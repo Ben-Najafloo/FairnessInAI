@@ -1,18 +1,46 @@
+import React, { useContext, useRef, useEffect } from 'react';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { ProgressContext } from '../../ProgressContext';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement, Tooltip, Legend, ChartDataLabels);
 
 const FeatureImportanceChart = ({ feature_importance }) => {
+    const { closeSidebar } = useContext(ProgressContext);
+    const chartRef = useRef();
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(() => {
+            if (chartRef.current?.chart) {
+                console.log('Destroy and rebuild chart');
+                const chart = chartRef.current.chart;
+                chart.destroy();  // Force destroy
+                chart.update();   // Re-initialize with new dimensions
+            }
+        });
+
+        const container = chartRef.current?.canvas?.parentNode;
+        if (container) {
+            resizeObserver.observe(container);
+        }
+
+        return () => {
+            if (container) {
+                resizeObserver.unobserve(container);
+            }
+        };
+    }, []);
+
     if (!feature_importance) return <p className="text-gray-100">Feature importance not available.</p>;
+
+
 
     const safeFeatureImportance = feature_importance || {};
     // Convert the object to an array and sort descending based on importance
     const sortedImportance = Object.entries(safeFeatureImportance).sort((a, b) => b[1] - a[1]);
 
     // Get the top 10 features
-    const top10 = sortedImportance.slice(0, 5);
+    const top10 = sortedImportance.slice(0, 6);
 
     // Map the top 10 to extract labels and their associated importance values
     const labels = top10.map(([feature]) => feature);
@@ -98,8 +126,8 @@ const FeatureImportanceChart = ({ feature_importance }) => {
     };
 
     return (
-        <div style={{ height: '350px' }}>
-            <Bar data={data} options={options} />
+        <div className="w-full h-[350px] relative">
+            <Bar key={closeSidebar ? 'collapsed' : 'expanded'} ref={chartRef} data={data} options={options} />
         </div>
     );
 };

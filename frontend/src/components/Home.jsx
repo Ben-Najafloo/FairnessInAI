@@ -12,7 +12,7 @@ const Home = () => {
     };
 
     useEffect(() => {
-        setProgress(0);
+        setProgress(2);
     }, [setProgress]);
 
     return (
