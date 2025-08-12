@@ -6,31 +6,28 @@ import axios from 'axios';
 import { AskHelp, ShowHelp, DatasetUpload, ProblemTypeCo, TargetFeatureSelection, SensitiveFeatureSelection } from './upload-components/uploadComponentsUrl.js';
 
 const Upload = () => {
-    const { setProgress } = useContext(ProgressContext);
+    const { setProgress, fileName, setFileName, labelColumn, setLabelColumn, sensitiveColumn, setSensitiveColumn, sensitiveColumn2, setSensitiveColumn2, problemTypeColumn, setProblemTypeColumn } = useContext(ProgressContext);
     const navigate = useNavigate();
 
     //dataForm values
     const [datasetFile, setDatasetFile] = useState(null);
-    const [labelColumn, setLabelColumn] = useState('');
+
     const [targetTableShow, setTargetTableShow] = useState(false);
-    const [sensitiveColumn, setSensitiveColumn] = useState(null);
-    const [sensitiveColumn2, setSensitiveColumn2] = useState(null);
-    const [problemTypeColumn, setProblemTypeColumn] = useState('');
+
+
 
     //help popup
     const [helpPopUpTarget, setHelpPopUpTarget] = useState(false);
     const [showHelpTarget, setShowHelpTarget] = useState(false);
-
-    // steps
-    const [fileName, setFileName] = useState('');
-    const [sensitiveCulumnBox, setSensitiveCulumnBox] = useState(false);
-    const [problemType, setProblemType] = useState('');
 
     //errors
     const [errorMessage, setErrorMessage] = useState('');
     const [labelErrorMessage, setLabelErrorMessage] = useState('');
     const [sensitiveErrorMessage, setSensitiveErrorMessage] = useState('');
     const [problemErrorMessage, setProblemErrorMessage] = useState('');
+
+    const [sensitiveCulumnBox, setSensitiveCulumnBox] = useState(false);
+    const [problemType, setProblemType] = useState('');
 
     //show all columns of dataset
     const [columns, setColumns] = useState([]);
@@ -164,13 +161,17 @@ const Upload = () => {
                     fileName={fileName} />
             )}
 
-            <ProblemTypeCo
-                problemType={problemType}
-                problemErrorMessage={problemErrorMessage}
-                setProblemTypeColumn={setProblemTypeColumn}
-                problemTypeColumn={problemTypeColumn}
-                handleSubmit={handleSubmit}
-                backToSensitiveColumn={backToSensitiveColumn} />
+            {sensitiveCulumnBox === false && (
+                <ProblemTypeCo
+                    problemType={problemType}
+                    problemErrorMessage={problemErrorMessage}
+                    setProblemTypeColumn={setProblemTypeColumn}
+                    problemTypeColumn={problemTypeColumn}
+                    handleSubmit={handleSubmit}
+                    backToSensitiveColumn={backToSensitiveColumn}
+                />
+            )}
+
 
         </div>
 

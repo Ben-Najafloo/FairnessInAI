@@ -8,7 +8,7 @@ const Home = () => {
     const { setProgress } = useContext(ProgressContext); // Access `setProgress`
 
     const handleGetStarted = () => {
-        setProgress(2); // Update to Step 2
+        setProgress(1);
     };
 
     useEffect(() => {

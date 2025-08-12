@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ProgressContext } from '../ProgressContext';
-import { FaCheck, FaGoogleDrive } from "react-icons/fa";
+import { FaGoogleDrive } from "react-icons/fa";
 import { FaRegShareFromSquare, FaFilePdf } from "react-icons/fa6";
 import { MdEmail, MdOutlineQrCodeScanner, MdAddchart, MdOutlineDatasetLinked } from "react-icons/md";
 import { SiThealgorithms } from "react-icons/si";
@@ -14,14 +14,10 @@ import RocCurve from './analysis-components/RocCurve';
 import DisparityMetricsChart from './analysis-components/DisparityMetricsChart';
 import ByGroupMetrics from './analysis-components/ByGroupMetrics';
 
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-
 import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip } from 'chart.js';
 
-import {
-    BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell
-} from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // download
 import jsPDF from "jspdf";
@@ -30,7 +26,7 @@ import html2canvas from "html2canvas";
 const Analys = () => {
     const location = useLocation();
     const { result } = location.state || {};
-    console.log(result)
+    // console.log(result)
     // Parse if result is a JSON string
     if (typeof result === 'string') {
         try {
@@ -124,8 +120,8 @@ const Analys = () => {
     }
 
 
-    // Extract the evaluation object and message from the result
-    const { evaluation, message, do_balance_data, file_name, label_column, sensitive_column, sensitive_column2 } = result;
+    // Extract also label_column, sensitive_column, sensitive_column2 and message from the result
+    const { evaluation, do_balance_data, file_name } = result;
 
     const {
         fairness_score,
@@ -334,7 +330,7 @@ const Analys = () => {
                                 </Link>
                             </span>
                             <span className="hidden sm:block">
-                                <Link to="/upload"
+                                <Link to="/upload" onClick={() => { setProgress(0) }}
                                     className="text-white flex hover:border hover:border-white  font-medium rounded text-sm px-3 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 hover:outline-none dark:hover:bg-gray-800">
                                     <MdAddchart className="mr-2 text-xl" />New Assessment
                                 </Link>

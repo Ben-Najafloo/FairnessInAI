@@ -34,39 +34,39 @@ const Document = () => {
     return (
         <div className=" bg-gradient-to-b from-gray-500 to-gray-900">
             <Nav className="h-1/10 flex" />
-            <div className="flex h-[603px] overflow-auto w-full mt-2">
+            <div className="flex h-9/10 overflow-auto w-full mt-4">
 
-                <div className="flex h-full pl-4 w-1/4">
-                    <div className="rounded w-full bg-white text-sm/6 shadow-lg ring-1 ring-gray-900">
+                <div className="flex h-full pl-4 w-1/5">
+                    <div className="rounded w-full text-white text-sm/6 ">
                         <div className="p-2">
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <RiPresentationFill className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center  group-hover:bg-white">
+                                    <RiPresentationFill className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('introduction')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('introduction')} className="font-semibold  group-hover:text-indigo-600">
                                         Introduction
                                         <span className="absolute inset-0"></span>
                                     </button>
                                 </div>
                             </div>
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <SiInstructure className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center  group-hover:bg-white">
+                                    <SiInstructure className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('process')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('process')} className="font-semibold  group-hover:text-indigo-600">
                                         User Guide
                                         <span className="absolute inset-0"></span>
                                     </button>
                                 </div>
                             </div>
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <PiStudentFill className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center  group-hover:bg-white">
+                                    <PiStudentFill className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('section-3')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('section-3')} className="font-semibold  group-hover:text-indigo-600">
                                         Section-3
                                         <span className="absolute inset-0"></span>
                                     </button>
@@ -74,11 +74,11 @@ const Document = () => {
                                 </div>
                             </div>
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <MdDeveloperMode className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center  group-hover:bg-white">
+                                    <MdDeveloperMode className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('section-4')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('section-4')} className="font-semibold  group-hover:text-indigo-600">
                                         Section-4
                                         <span className="absolute inset-0"></span>
                                     </button>
@@ -86,11 +86,11 @@ const Document = () => {
                                 </div>
                             </div>
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <GiFilmProjector className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center  group-hover:bg-white">
+                                    <GiFilmProjector className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('section-5')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('section-5')} className="font-semibold  group-hover:text-indigo-600">
                                         Section-5
                                         <span className="absolute inset-0"></span>
                                     </button>
@@ -98,11 +98,11 @@ const Document = () => {
                                 </div>
                             </div>
                             <div className="group relative flex gap-x-3 rounded-lg hover:bg-gray-50">
-                                <div className="mt-1 flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                    <MdVideoCameraFront className="size-6 text-gray-600 group-hover:text-indigo-600" />
+                                <div className="mt-1 flex size-11 flex-none items-center justify-center group-hover:bg-white">
+                                    <MdVideoCameraFront className="size-6  group-hover:text-indigo-600" />
                                 </div>
                                 <div className="pt-4">
-                                    <button onClick={() => handleAboutTopic('section-6')} className="font-semibold text-gray-900 group-hover:text-indigo-600">
+                                    <button onClick={() => handleAboutTopic('section-6')} className="font-semibold  group-hover:text-indigo-600">
                                         Section-6
                                         <span className="absolute inset-0"></span>
                                     </button>
@@ -116,7 +116,7 @@ const Document = () => {
 
                 {/* Introduction */}
                 {aboutContent === 'introduction' && (
-                    <div className="flex px-4 w-3/4">
+                    <div className="flex h-full px-4 w-4/5">
                         <div className="rounded w-full bg-white text-sm/6 shadow-lg ring-1 ring-gray-900/5  h-[603px] overflow-auto">
                             <div className="p-4">
                                 <div className=" py-4">
@@ -133,7 +133,7 @@ const Document = () => {
 
                 {/* process */}
                 {aboutContent === 'process' && (
-                    <div className="flex px-4 w-3/4">
+                    <div className="flex h-full px-4 w-4/5">
                         <div className="rounded w-full bg-white text-sm/6 shadow-lg ring-1 ring-gray-900/5  h-[603px] overflow-auto">
                             <div className="p-4 ">
                                 <div className=" py-4 m-3 px-4">
@@ -192,7 +192,7 @@ const Document = () => {
 
                 {/* section-3 */}
                 {aboutContent === 'section-3' && (
-                    <div className="flex px-4 w-3/4">
+                    <div className="flex h-full px-4 w-4/5">
                         <div className="rounded w-full bg-white text-sm/6 shadow-lg ring-1 ring-gray-900/5  h-[603px] overflow-auto">
                             <div className="p-4">
                                 <div class="bg-white py-4 m-3  px-4">
@@ -208,7 +208,7 @@ const Document = () => {
 
                 {/* section-4 */}
                 {aboutContent === 'section-4' && (
-                    <div className="flex px-4 w-3/4">
+                    <div className="flex h-full px-4 w-4/5">
                         <div className="rounded w-full bg-gray-200 text-sm/6 shadow-lg ring-1 ring-gray-900/5  h-[603px] overflow-auto">
                             <div className="p-4">
                                 <div class=" py-4 m-3  px-4">
@@ -223,7 +223,7 @@ const Document = () => {
 
                 {/* section-5 */}
                 {aboutContent === 'section-5' && (
-                    <div className="flex px-4 w-3/4">
+                    <div className="flex h-full px-4 w-4/5">
                         <div className="rounded w-full bg-gray-200 text-sm/6 shadow-lg ring-1 ring-gray-900/5  h-[603px] overflow-auto">
                             <div className="p-4">
                                 <div class=" py-4 m-3  px-4">

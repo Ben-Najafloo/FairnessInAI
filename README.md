@@ -1,6 +1,6 @@
 Future works:
 
-1-In desgin make the problem specification more motional (https://app.mural.co/about-you)
+1-(doneeee) In desgin make the problem specification more motional (https://app.mural.co/about-you)
 
 2-Add select file from google drive / select file from google drive button in file uploading process like "ilovepdf.com"
 

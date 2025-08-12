@@ -17,7 +17,7 @@ const SelectionFrame = ({
     title }) => {
     return (
         <div className="mx-auto md:pt-4 items-center justify-between md:pr-11 md:pl-11 pt-11 w-ful h-full">
-            <div className="flex relative w-ful h-full pb-14 flex-col items-center justify-center bg-gray-700 text-white">
+            <div className="flex relative w-ful h-full  pb-14 flex-col items-center justify-center  text-white">
                 {errorMessage && (
                     <p className="mb-2 text-red-600 absolute top-11">
                         {errorMessage}

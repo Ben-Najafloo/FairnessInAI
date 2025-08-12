@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import SelectionFrame from './SelectionFrame'
+import SelectionFrame from './SelectionFrame';
+import { motion, AnimatePresence } from "framer-motion";
 
 const SensitiveFeatureSelection = ({ columns = [],
     sensitiveErrorMessage,
@@ -45,38 +46,48 @@ const SensitiveFeatureSelection = ({ columns = [],
     const titleForSensitiveForm = <> Now set <span className='italic font-bold text-lg'> the Sensitive Feature </span> you can chose one or two! </>;
 
     return (
-        <SelectionFrame
-            errorMessage={sensitiveErrorMessage}
-            columns={columns}
-            fileName={fileName}
-            handleNextStep={handleProblemType}
-            handleBackStep={backToLabelColumn}
-            itemsPerPage={itemsPerPage}
-            totalPages={totalPages}
-            currentPage={sensitiveCurrentPage}
-            setCurrentPage={setSensitiveCurrentPage}
-            title={titleForSensitiveForm}
-        >
-            <div
-                className="grid grid-cols-1 h-48 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
-                {currentSensitive.map((col, index) => (
-                    <div key={index}>
-                        <input type="checkbox"
-                            id={col}
-                            value={col}
-                            checked={col === sensitiveColumn || col === sensitiveColumn2}
-                            onChange={() => handleSensitiveOptions(col)}
-                            className="hidden peer" />
-                        <label for={col} className="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
-                            <div className="block">
-                                <div className="w-full text-base">{col}</div>
+        <AnimatePresence mode="wait">
+            <motion.div
+                initial={{ x: 200, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -200, opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className='h-full'
+            >
+                <SelectionFrame
+                    errorMessage={sensitiveErrorMessage}
+                    columns={columns}
+                    fileName={fileName}
+                    handleNextStep={handleProblemType}
+                    handleBackStep={backToLabelColumn}
+                    itemsPerPage={itemsPerPage}
+                    totalPages={totalPages}
+                    currentPage={sensitiveCurrentPage}
+                    setCurrentPage={setSensitiveCurrentPage}
+                    title={titleForSensitiveForm}
+                >
+                    <div
+                        className="grid grid-cols-1 h-48 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-2">
+                        {currentSensitive.map((col, index) => (
+                            <div key={index}>
+                                <input type="checkbox"
+                                    id={col}
+                                    value={col}
+                                    checked={col === sensitiveColumn || col === sensitiveColumn2}
+                                    onChange={() => handleSensitiveOptions(col)}
+                                    className="hidden peer" />
+                                <label for={col} className="inline-flex items-center justify-between w-full p-2 text-gray-300  border border-gray-300 rounded cursor-pointer peer-checked:border-green-400 hover:text-gray-800  peer-checked:text-green-400 hover:bg-gray-100 ">
+                                    <div className="block">
+                                        <div className="w-full text-base">{col}</div>
+                                    </div>
+                                </label>
                             </div>
-                        </label>
-                    </div>
 
-                ))}
-            </div>
-        </SelectionFrame>
+                        ))}
+                    </div>
+                </SelectionFrame>
+            </motion.div>
+        </AnimatePresence>
     )
 }
 
